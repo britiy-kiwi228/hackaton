@@ -2,6 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
+from app.database import engine, Base
+from app.routers import hackathons
+
+# Создаем таблицы БД
+Base.metadata.create_all(bind=engine)
+
 # Создаем приложение
 app = FastAPI(title="Hackathon API")
 
@@ -14,6 +20,9 @@ app.add_middleware(
     allow_methods=["*"],  # Разрешаем любые методы (GET, POST и т.д.)
     allow_headers=["*"],
 )
+
+# Подключаем роутеры
+app.include_router(hackathons.router)
 
 @app.get("/")
 def read_root():
