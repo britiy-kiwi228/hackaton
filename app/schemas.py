@@ -1,21 +1,112 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
+from enum import Enum
 
-class UserCreate(BaseModel):
-    """Модель для создания пользователя"""
+# Импортируем Enum Role из моделей (для использования в схемах)
+class RoleEnum(str, Enum):
+    """Роли участников"""
+    backend = "backend"
+    frontend = "frontend"
+    design = "design"
+    pm = "pm"
+    analyst = "analyst"
+
+
+# ==================== USER СХЕМЫ ====================
+
+class UserBase(BaseModel):
+    """Базовая схема пользователя"""
+    username: Optional[str] = None
+    full_name: str
+    bio: str = ""
+    main_role: RoleEnum
+    ready_to_work: bool = True
+
+
+class UserLogin(BaseModel):
+    """Схема для логина через Telegram"""
+    tg_id: int
+    username: Optional[str] = None
+    full_name: str
+
+
+class UserUpdate(BaseModel):
+    """Схема для обновления профиля"""
+    bio: Optional[str] = None
+    main_role: Optional[RoleEnum] = None
+    skills: Optional[List[str]] = None  # Список названий навыков
+
+
+class SkillResponse(BaseModel):
+    """Схема для ответа со скиллом"""
+    id: int
+    name: str
+    
+    class Config:
+        from_attributes = True
+
+
+class AchievementResponse(BaseModel):
+    """Схема для ответа с достижением"""
+    id: int
+    hackathon_name: str
+    place: Optional[int]
+    team_name: str
+    project_link: Optional[str]
+    year: int
+    description: str
+    
+    class Config:
+        from_attributes = True
+
+
+class UserResponse(BaseModel):
+    """Модель ответа пользователя (полная информация)"""
+    id: int
+    tg_id: int
+    username: Optional[str]
+    full_name: str
+    bio: str
+    main_role: str
+    ready_to_work: bool
+    team_id: Optional[int]
+    created_at: datetime
+    skills: List[SkillResponse] = []
+    achievements: List[AchievementResponse] = []
+    
+    class Config:
+        from_attributes = True
+
+
+class UserListResponse(BaseModel):
+    """Модель для списка пользователей (краткая информация)"""
+    id: int
+    tg_id: int
+    username: Optional[str]
+    full_name: str
+    main_role: str
+    team_id: Optional[int]
+    
+    class Config:
+        from_attributes = True
+
+
+class UserCreateOld(BaseModel):
+    """Модель для создания пользователя (старая версия)"""
     name: str
     email: EmailStr
 
-class UserResponse(BaseModel):
-    """Модель ответа пользователя"""
+
+class UserResponseOld(BaseModel):
+    """Модель ответа пользователя (старая версия)"""
     id: int
     name: str
     email: str
     created_at: datetime
     
     class Config:
-        from_attributes = True  # Работает с SQLAlchemy моделями
+        from_attributes = True
 
 
 # ==================== HACKATHON СХЕМЫ ====================

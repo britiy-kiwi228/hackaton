@@ -23,6 +23,13 @@ except Exception as e:
     logger.error(f"✗ Ошибка импорта routers: {e}", exc_info=True)
     raise
 
+try:
+    from app.routers import users
+    logger.info("✓ Users router импортирован")
+except Exception as e:
+    logger.error(f"✗ Ошибка импорта users router: {e}", exc_info=True)
+    raise
+
 # Создаем таблицы БД
 try:
     Base.metadata.create_all(bind=engine)
@@ -46,6 +53,7 @@ app.add_middleware(
 
 # Подключаем роутеры
 app.include_router(hackathons.router)
+app.include_router(users.router)
 logger.info("✓ Роутеры подключены")
 
 @app.get("/")
