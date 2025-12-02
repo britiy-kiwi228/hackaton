@@ -46,6 +46,13 @@ except Exception as e:
     logger.error(f"✗ Ошибка импорта requests router: {e}", exc_info=True)
     raise
 
+try:
+    from app.routers import recommendations as recommendations_router
+    logger.info("✓ Recommendations router импортирован")
+except Exception as e:
+    logger.error(f"✗ Ошибка импорта recommendations router: {e}", exc_info=True)
+    raise
+
 # Импортируем модели для админ-панели
 from app.models import User, Hackathon, Team, Skill, Achievement
 
@@ -108,6 +115,7 @@ app.include_router(hackathons.router)
 app.include_router(users.router)
 app.include_router(teams.router)
 app.include_router(requests_router.router)
+app.include_router(recommendations_router.router)
 logger.info("✓ Роутеры подключены")
 
 

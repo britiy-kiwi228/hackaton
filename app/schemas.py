@@ -276,3 +276,24 @@ class RequestResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+# ==================== RECOMMENDATIONS СХЕМЫ ====================
+
+class RecommendationRequest(BaseModel):
+    """Запрос рекомендаций для пользователя или команды"""
+    for_what: str  # "team" или "user"
+    preferred_roles: Optional[List[str]] = None  # Предпочитаемые роли
+    preferred_skills: Optional[List[str]] = None  # Предпочитаемые навыки
+    exclude_team_ids: Optional[List[int]] = None  # Исключить команды
+    exclude_user_ids: Optional[List[int]] = None  # Исключить пользователей
+    hackathon_id: int  # ID хакатона для контекста
+
+
+class RecommendationResponse(BaseModel):
+    """Ответ с рекомендациями"""
+    recommended_teams: Optional[List['TeamResponse']] = None
+    recommended_users: Optional[List['UserResponse']] = None
+    
+    class Config:
+        from_attributes = True
