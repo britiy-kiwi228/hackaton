@@ -1,53 +1,143 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from datetime import datetime, timedelta
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List
 
 from app.database import get_db
 from app.models import Hackathon
-
-# ==================== PYDANTIC СХЕМЫ ====================
-
-class HackathonResponse(BaseModel):
-    """Схема для ответа с информацией о хакатоне"""
-    id: int
-    title: str
-    description: str
-    start_date: datetime
-    end_date: datetime
-    registration_deadline: datetime
-    logo_url: Optional[str]
-    location: str
-    is_active: bool
-    
-    class Config:
-        from_attributes = True
-
-
-class CalendarResponse(BaseModel):
-    """Ответ для календаря хакатонов"""
-    upcoming: List[HackathonResponse]
-    history: List[HackathonResponse]
-
-
-class NotificationResponse(BaseModel):
-    """Ответ с уведомлением о ближайшем хакатоне"""
-    has_notification: bool
-    message: Optional[str] = None
-    hackathon_id: Optional[int] = None
-
+from app.schemas import (
+    HackathonCreate,
+    HackathonUpdate,
+    HackathonResponse,
+    CalendarResponse,
+    NotificationResponse,
+)
 
 # ==================== РОУТЕР ====================
 
 router = APIRouter(prefix="/hackathons", tags=["hackathons"])
 
 
-@router.get("/calendar", response_model=CalendarResponse)
+# ==================== ОСНОВНЫЕ CRUD ОПЕРАЦИИ ====================
+
+@router.post("/", response_model=HackathonResponse, status_code=status.HTTP_201_CREATED)
+def create_hackathon(hackathon_in: HackathonCreate, db: Session = Depends(get_db)):
+    """
+    POST /hackathons/
+    Создает новый хакатон.
+    """
+    # Проверяем корректность дат
+    if hackathon_in.start_date >= hackathon_in.end_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date должна быть раньше end_date"
+        )
+    
+    if hackathon_in.registration_deadline > hackathon_in.start_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="registration_deadline не может быть после start_date"
+        )
+    
+    # Создаем новый хакатон
+    db_hackathon = Hackathon(**hackathon_in.dict())
+    db.add(db_hackathon)
+    db.commit()
+    db.refresh(db_hackathon)
+    
+    return db_hackathon
+
+
+@router.get("/", response_model=List[HackathonResponse])
+def get_all_hackathons(
+    skip: int = Query(0, ge=0, description="Количество записей для пропуска"),
+    limit: int = Query(10, ge=1, le=100, description="Максимум записей в ответе"),
+    db: Session = Depends(get_db)
+):
+    """
+    GET /hackathons/
+    Возвращает список всех хакатонов с пагинацией.
+    
+    Query параметры:
+    - skip: смещение (по умолчанию 0)
+    - limit: лимит результатов (по умолчанию 10, макс 100)
+    """
+    hackathons = db.query(Hackathon).offset(skip).limit(limit).all()
+    return hackathons
+
+
+@router.get("/{hackathon_id}", response_model=HackathonResponse)
+def get_hackathon_by_id(hackathon_id: int, db: Session = Depends(get_db)):
+    """
+    GET /hackathons/{hackathon_id}
+    Возвращает информацию о конкретном хакатоне.
+    """
+    hackathon = db.query(Hackathon).filter(Hackathon.id == hackathon_id).first()
+    
+    if not hackathon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Хакатон с ID {hackathon_id} не найден"
+        )
+    
+    return hackathon
+
+
+@router.put("/{hackathon_id}", response_model=HackathonResponse)
+def update_hackathon(
+    hackathon_id: int,
+    hackathon_update: HackathonUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    PUT /hackathons/{hackathon_id}
+    Обновляет информацию о хакатоне.
+    """
+    db_hackathon = db.query(Hackathon).filter(Hackathon.id == hackathon_id).first()
+    
+    if not db_hackathon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Хакатон с ID {hackathon_id} не найден"
+        )
+    
+    # Обновляем только переданные поля
+    update_data = hackathon_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_hackathon, field, value)
+    
+    db.add(db_hackathon)
+    db.commit()
+    db.refresh(db_hackathon)
+    
+    return db_hackathon
+
+
+@router.delete("/{hackathon_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_hackathon(hackathon_id: int, db: Session = Depends(get_db)):
+    """
+    DELETE /hackathons/{hackathon_id}
+    Удаляет хакатон.
+    """
+    db_hackathon = db.query(Hackathon).filter(Hackathon.id == hackathon_id).first()
+    
+    if not db_hackathon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Хакатон с ID {hackathon_id} не найден"
+        )
+    
+    db.delete(db_hackathon)
+    db.commit()
+
+
+# ==================== СПЕЦИАЛИЗИРОВАННЫЕ ЭНДПОИНТЫ ====================
+
+@router.get("/calendar/view", response_model=CalendarResponse)
 def get_hackathons_calendar(db: Session = Depends(get_db)):
     """
-    GET /hackathons/calendar
+    GET /hackathons/calendar/view
     Возвращает список будущих и прошедших хакатонов.
     Будущие отсортированы по start_date (от ближайшего к дальнему).
     """
@@ -75,9 +165,14 @@ def get_hackathons_calendar(db: Session = Depends(get_db)):
 @router.get("/notifications/check_upcoming", response_model=NotificationResponse)
 def check_upcoming_hackathon(db: Session = Depends(get_db)):
     """
-    GET /notifications/check_upcoming
+    GET /hackathons/notifications/check_upcoming
     Проверяет, есть ли хакатон, который начнется в течение 3 дней.
     Используется фронтендом при входе в приложение.
+    
+    Возвращает:
+    - has_notification: bool
+    - message: str (если есть уведомление)
+    - hackathon_id: int (если есть уведомление)
     """
     now = datetime.utcnow()
     three_days_later = now + timedelta(days=3)
@@ -98,7 +193,7 @@ def check_upcoming_hackathon(db: Session = Depends(get_db)):
     time_diff = upcoming_hackathon.start_date - now
     hours_left = round(time_diff.total_seconds() / 3600)
     
-    # Формируем сообщение
+    # Формируем сообщение с правильным склонением
     if hours_left < 1:
         hours_text = "менее часа"
     elif hours_left == 1:
