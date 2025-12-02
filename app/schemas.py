@@ -228,3 +228,51 @@ class TeamRequestResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+# ==================== GENERAL REQUEST СХЕМЫ ====================
+
+class RequestTypeEnum(str, Enum):
+    """Типы запросов"""
+    join_team = "join_team"
+    collaborate = "collaborate"
+    invite = "invite"
+
+
+class RequestStatusEnum(str, Enum):
+    """Статусы запросов"""
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
+    canceled = "canceled"
+
+
+class RequestCreate(BaseModel):
+    """Схема для создания запроса"""
+    receiver_id: Optional[int] = None
+    team_id: Optional[int] = None
+    hackathon_id: int
+    request_type: RequestTypeEnum
+
+
+class RequestUpdate(BaseModel):
+    """Схема для обновления запроса"""
+    status: Optional[RequestStatusEnum] = None
+
+
+class RequestResponse(BaseModel):
+    """Информация о общем запросе (запрос на сотрудничество, вступление и т.д.)"""
+    id: int
+    sender_id: int
+    receiver_id: Optional[int]
+    team_id: Optional[int]
+    request_type: str
+    status: str
+    hackathon_id: int
+    created_at: datetime
+    sender: Optional['UserResponse'] = None
+    receiver: Optional['UserResponse'] = None
+    team: Optional['TeamResponse'] = None
+    
+    class Config:
+        from_attributes = True

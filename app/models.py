@@ -76,6 +76,13 @@ class Hackathon(Base):
         back_populates="hackathon",
         cascade="all, delete",
     )
+    
+    # Связь с Request (one-to-many)
+    requests: Mapped[List["Request"]] = relationship(
+        "Request",
+        back_populates="hackathon",
+        cascade="all, delete",
+    )
 
 
 class User(Base):
@@ -135,6 +142,22 @@ class User(Base):
         back_populates="user",
         cascade="all, delete",
     )
+    
+    # One-to-many с Request (отправленные запросы)
+    sent_requests: Mapped[List["Request"]] = relationship(
+        "Request",
+        back_populates="sender",
+        foreign_keys="Request.sender_id",
+        cascade="all, delete",
+    )
+    
+    # One-to-many с Request (полученные запросы)
+    received_requests: Mapped[List["Request"]] = relationship(
+        "Request",
+        back_populates="receiver",
+        foreign_keys="Request.receiver_id",
+        cascade="all, delete",
+    )
 
 
 class Team(Base):
@@ -183,6 +206,13 @@ class Team(Base):
     # Заявки/приглашения в команду
     requests: Mapped[List["TeamRequest"]] = relationship(
         "TeamRequest",
+        back_populates="team",
+        cascade="all, delete",
+    )
+    
+    # Общие запросы к команде
+    requests_general: Mapped[List["Request"]] = relationship(
+        "Request",
         back_populates="team",
         cascade="all, delete",
     )
@@ -261,4 +291,86 @@ class Achievement(Base):
         "User",
         back_populates="achievements",
         foreign_keys=[user_id],
+    )
+
+
+class RequestType(PyEnum):
+    """Типы запросов"""
+    join_team = "join_team"
+    collaborate = "collaborate"
+    invite = "invite"
+
+
+class Request(Base):
+    """Общие запросы (на сотрудничество, вступление и т.д.)"""
+    __tablename__ = "requests"
+    
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    
+    # Foreign Keys
+    sender_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+    )
+    
+    receiver_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+        comment="Получатель (если это личный запрос)"
+    )
+    
+    team_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("teams.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+        comment="Команда (если это запрос на вступление)"
+    )
+    
+    hackathon_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("hackathons.id", ondelete="CASCADE"),
+        index=True,
+    )
+    
+    # Основная информация
+    request_type: Mapped[RequestType] = mapped_column(
+        Enum(RequestType),
+        index=True,
+        comment="Тип запроса (join_team, collaborate, invite)"
+    )
+    
+    status: Mapped[RequestStatus] = mapped_column(
+        Enum(RequestStatus),
+        default=RequestStatus.pending,
+        index=True,
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Связи
+    sender: Mapped["User"] = relationship(
+        "User",
+        back_populates="sent_requests",
+        foreign_keys=[sender_id],
+    )
+    
+    receiver: Mapped[Optional["User"]] = relationship(
+        "User",
+        back_populates="received_requests",
+        foreign_keys=[receiver_id],
+    )
+    
+    team: Mapped[Optional["Team"]] = relationship(
+        "Team",
+        back_populates="requests_general",
+    )
+    
+    hackathon: Mapped["Hackathon"] = relationship(
+        "Hackathon",
+        back_populates="requests",
     )

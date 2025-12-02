@@ -39,6 +39,13 @@ except Exception as e:
     logger.error(f"✗ Ошибка импорта teams router: {e}", exc_info=True)
     raise
 
+try:
+    from app.routers import requests as requests_router
+    logger.info("✓ Requests router импортирован")
+except Exception as e:
+    logger.error(f"✗ Ошибка импорта requests router: {e}", exc_info=True)
+    raise
+
 # Импортируем модели для админ-панели
 from app.models import User, Hackathon, Team, Skill, Achievement
 
@@ -100,6 +107,7 @@ app.add_middleware(
 app.include_router(hackathons.router)
 app.include_router(users.router)
 app.include_router(teams.router)
+app.include_router(requests_router.router)
 logger.info("✓ Роутеры подключены")
 
 
