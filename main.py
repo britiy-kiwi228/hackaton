@@ -122,7 +122,7 @@ logger.info("✓ Роутеры подключены")
 # ==================== АДМИН-ПАНЕЛЬ ====================
 
 try:
-    from sqladmin import Admin, ModelView
+    from sqladmin import Admin, ModelView  # type: ignore
     
     # Классы представления для админ-панели
     class UserAdmin(ModelView, model=User):

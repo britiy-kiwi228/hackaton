@@ -32,24 +32,45 @@ def get_current_user_from_request(http_request: StarletteRequest) -> User:
 
 def get_user_skills(user: User) -> Set[str]:
     """Получить набор навыков пользователя"""
-    return {skill.name.lower() for skill in user.skills}
+    try:
+        skills = user.skills or []
+        return {skill.name.lower() for skill in skills if skill and skill.name}
+    except Exception:
+        return set()
 
 
 def get_user_roles_in_team(team: Team) -> Set[str]:
     """Получить набор ролей в команде"""
     roles = set()
-    for member in team.members:
-        if member.main_role:
-            roles.add(member.main_role.lower())
+    try:
+        members = team.members or []
+        for member in members:
+            try:
+                if member.main_role:
+                    role_value = member.main_role.value if hasattr(member.main_role, 'value') else str(member.main_role)
+                    roles.add(role_value.lower())
+            except Exception:
+                continue
+    except Exception:
+        pass
     return roles
 
 
 def get_team_skills(team: Team) -> Set[str]:
     """Получить набор всех навыков в команде"""
     skills = set()
-    for member in team.members:
-        for skill in member.skills:
-            skills.add(skill.name.lower())
+    try:
+        members = team.members or []
+        for member in members:
+            try:
+                member_skills = member.skills or []
+                for skill in member_skills:
+                    if skill and skill.name:
+                        skills.add(skill.name.lower())
+            except Exception:
+                continue
+    except Exception:
+        pass
     return skills
 
 
@@ -238,114 +259,177 @@ async def get_recommendations(
     - **max_results**: Максимальное количество результатов (по умолчанию 10)
     - **min_score**: Минимальная оценка совместимости (0.0-1.0, по умолчанию 0.3)
     """
-    current_user = get_current_user_from_request(http_request)
-    
-    exclude_team_ids = rec_request.exclude_team_ids or []
-    exclude_user_ids = rec_request.exclude_user_ids or []
-    
-    if rec_request.for_what == "team":
-        # ===== РЕКОМЕНДАЦИИ КОМАНД ПОЛЬЗОВАТЕЛЮ =====
+    try:
+        current_user = get_current_user_from_request(http_request)
         
-        # Получить команды
-        teams_query = db.query(Team).filter(
-            and_(
-                Team.hackathon_id == rec_request.hackathon_id,
-                Team.id.notin_(exclude_team_ids) if exclude_team_ids else True,
-                ~Team.members.any(User.id == current_user.id)
-            )
-        )
+        exclude_team_ids = rec_request.exclude_team_ids or []
+        exclude_user_ids = rec_request.exclude_user_ids or []
         
-        teams = teams_query.all()
-        recommendations_list = []
-        
-        for team in teams:
-            score, reasons = calculate_team_compatibility(
-                user=current_user,
-                team=team,
-                preferred_roles=rec_request.preferred_roles,
-                preferred_skills=rec_request.preferred_skills
+        if rec_request.for_what == "team":
+            # ===== РЕКОМЕНДАЦИИ КОМАНД ПОЛЬЗОВАТЕЛЮ =====
+            
+            # Получить команды, в которых пользователь не состоит
+            teams_query = db.query(Team).filter(
+                and_(
+                    Team.hackathon_id == rec_request.hackathon_id,
+                    Team.id.notin_(exclude_team_ids) if exclude_team_ids else True
+                )
             )
             
-            # Добавить если оценка выше минимума
-            if score >= rec_request.min_score:
-                # Создаем TeamResponse вручную чтобы избежать проблем с вложенными объектами
-                team_response = TeamListResponse(
-                    id=team.id,
-                    name=team.name,
-                    hackathon_id=team.hackathon_id,
-                    captain_id=team.captain_id,
-                    is_looking=team.is_looking
-                )
-                recommendations_list.append(EnhancedRecommendation(
-                    recommended_team=team_response,
-                    recommended_user=None,
-                    compatibility_score=score,
-                    match_reasons=reasons
-                ))
-        
-        # Сортировать и ограничить результаты
-        recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
-        recommendations_list = recommendations_list[:rec_request.max_results]
-        
-        return RecommendationResponse(
-            recommendations=recommendations_list,
-            total_found=len(recommendations_list)
-        )
-    
-    elif rec_request.for_what == "user":
-        # ===== РЕКОМЕНДАЦИИ ПОЛЬЗОВАТЕЛЕЙ КОМАНДЕ =====
-        
-        # Найти команду текущего пользователя (где он капитан)
-        user_team = db.query(Team).filter(Team.captain_id == current_user.id).first()
-        
-        if not user_team:
-            raise HTTPException(
-                status_code=400,
-                detail="User must be a team captain to get user recommendations"
+            teams = teams_query.all()
+            
+            # Фильтруем команды, в которых пользователь уже состоит
+            filtered_teams = []
+            for t in teams:
+                try:
+                    # Безопасно получаем members
+                    try:
+                        members = list(t.members) if t.members else []
+                        member_ids = [m.id for m in members if m and hasattr(m, 'id')]
+                    except Exception:
+                        member_ids = []
+                    
+                    # Проверяем также через team_id пользователя
+                    if current_user.id not in member_ids and (not current_user.team_id or current_user.team_id != t.id):
+                        filtered_teams.append(t)
+                except Exception as e:
+                    # Пропускаем команду если не можем проверить
+                    continue
+            
+            teams = filtered_teams
+            recommendations_list = []
+            
+            for team in teams:
+                try:
+                    score, reasons = calculate_team_compatibility(
+                        user=current_user,
+                        team=team,
+                        preferred_roles=rec_request.preferred_roles,
+                        preferred_skills=rec_request.preferred_skills
+                    )
+                    
+                    # Добавить если оценка выше минимума
+                    if score >= rec_request.min_score:
+                        # Создаем TeamResponse вручную чтобы избежать проблем с вложенными объектами
+                        team_response = TeamListResponse(
+                            id=team.id,
+                            name=team.name,
+                            hackathon_id=team.hackathon_id,
+                            captain_id=team.captain_id,
+                            is_looking=team.is_looking if hasattr(team, 'is_looking') else True
+                        )
+                        recommendations_list.append(EnhancedRecommendation(
+                            recommended_team=team_response,
+                            recommended_user=None,
+                            compatibility_score=score,
+                            match_reasons=reasons
+                        ))
+                except Exception as e:
+                    # Пропускаем команду если возникла ошибка при расчете
+                    continue
+            
+            # Сортировать и ограничить результаты
+            recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
+            recommendations_list = recommendations_list[:rec_request.max_results]
+            
+            return RecommendationResponse(
+                recommendations=recommendations_list,
+                total_found=len(recommendations_list)
             )
         
-        # Получить пользователей для рекомендации
-        users_query = db.query(User).filter(
-            and_(
-                User.team_id != current_user.team_id,
+        elif rec_request.for_what == "user":
+            # ===== РЕКОМЕНДАЦИИ ПОЛЬЗОВАТЕЛЕЙ КОМАНДЕ =====
+            
+            # Найти команду текущего пользователя (где он капитан)
+            user_team = db.query(Team).filter(Team.captain_id == current_user.id).first()
+            
+            if not user_team:
+                raise HTTPException(
+                    status_code=400,
+                    detail="User must be a team captain to get user recommendations"
+                )
+            
+            # Получить пользователей для рекомендации
+            # Исключаем пользователей, которые уже в команде капитана
+            try:
+                members = list(user_team.members) if user_team.members else []
+                member_ids = [m.id for m in members if m and hasattr(m, 'id')]
+            except Exception:
+                member_ids = []
+            
+            filter_conditions = [
                 User.id.notin_(exclude_user_ids) if exclude_user_ids else True,
                 User.ready_to_work == True,
-                User.id != current_user.id
-            )
-        )
-        
-        users = users_query.all()
-        recommendations_list = []
-        
-        for user in users:
-            score, reasons = calculate_user_compatibility(
-                candidate=user,
-                preferred_roles=rec_request.preferred_roles,
-                preferred_skills=rec_request.preferred_skills
-            )
+                User.id != current_user.id,
+                User.id.notin_(member_ids)  # Исключаем уже состоящих в команде
+            ]
             
-            # Добавить если оценка выше минимума
-            if score >= rec_request.min_score:
-                recommendations_list.append(EnhancedRecommendation(
-                    recommended_user=UserResponse.from_orm(user),
-                    recommended_team=None,
-                    compatibility_score=score,
-                    match_reasons=reasons
-                ))
+            users_query = db.query(User).filter(and_(*filter_conditions))
+            
+            users = users_query.all()
+            recommendations_list = []
+            
+            for user in users:
+                try:
+                    score, reasons = calculate_user_compatibility(
+                        candidate=user,
+                        preferred_roles=rec_request.preferred_roles,
+                        preferred_skills=rec_request.preferred_skills
+                    )
+                    
+                    # Добавить если оценка выше минимума
+                    if score >= rec_request.min_score:
+                        # Создаем UserResponse вручную чтобы избежать проблем с lazy loading
+                        from app.schemas import SkillResponse
+                        user_skills_data = [SkillResponse(id=s.id, name=s.name) for s in (user.skills or [])]
+                        
+                        user_response = UserResponse(
+                            id=user.id,
+                            tg_id=user.tg_id,
+                            username=user.username,
+                            full_name=user.full_name,
+                            bio=user.bio or "",
+                            main_role=user.main_role.value if user.main_role else None,
+                            ready_to_work=user.ready_to_work,
+                            team_id=user.team_id,
+                            created_at=user.created_at,
+                            skills=user_skills_data,
+                            achievements=[]
+                        )
+                        
+                        recommendations_list.append(EnhancedRecommendation(
+                            recommended_user=user_response,
+                            recommended_team=None,
+                            compatibility_score=score,
+                            match_reasons=reasons
+                        ))
+                except Exception as e:
+                    # Пропускаем пользователя если возникла ошибка
+                    continue
+            
+            # Сортировать и ограничить результаты
+            recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
+            recommendations_list = recommendations_list[:rec_request.max_results]
+            
+            return RecommendationResponse(
+                recommendations=recommendations_list,
+                total_found=len(recommendations_list)
+            )
         
-        # Сортировать и ограничить результаты
-        recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
-        recommendations_list = recommendations_list[:rec_request.max_results]
-        
-        return RecommendationResponse(
-            recommendations=recommendations_list,
-            total_found=len(recommendations_list)
-        )
-    
-    else:
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="for_what must be 'team' or 'user'"
+            )
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"ERROR in recommendations: {error_details}")  # Логирование для отладки
         raise HTTPException(
-            status_code=400,
-            detail="for_what must be 'team' or 'user'"
+            status_code=500,
+            detail=f"Internal server error: {str(e)}. Type: {type(e).__name__}"
         )
 
 
