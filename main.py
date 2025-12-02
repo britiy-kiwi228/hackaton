@@ -31,7 +31,7 @@ except Exception as e:
     raise
 
 # Импортируем модели для админ-панели
-from app.models import User, Hackathon, Team, Skill
+from app.models import User, Hackathon, Team, Skill, Achievement
 
 # Создаем таблицы БД
 try:
@@ -113,6 +113,18 @@ try:
         page_size = 50
 
 
+    class AchievementAdmin(ModelView, model=Achievement):
+        """Админ-панель для достижений"""
+        name = "Achievement"
+        name_plural = "Achievements"
+        icon = "fa-solid fa-trophy"
+        column_list = [Achievement.id, Achievement.hackathon_name, Achievement.place, Achievement.year, Achievement.created_at]
+        column_searchable_list = [Achievement.hackathon_name, Achievement.team_name]
+        column_sortable_list = [Achievement.year, Achievement.place, Achievement.created_at]
+        column_details_exclude_list = [Achievement.user]
+        page_size = 20
+
+
     # Регистрируем админ-панель
     admin = Admin(app=app, engine=engine, title="Hackathon Admin Panel", base_url="/admin")
     
@@ -121,6 +133,7 @@ try:
     admin.add_model_view(HackathonAdmin)
     admin.add_model_view(TeamAdmin)
     admin.add_model_view(SkillAdmin)
+    admin.add_model_view(AchievementAdmin)
     
     logger.info("✓ Админ-панель настроена")
     admin_enabled = True
