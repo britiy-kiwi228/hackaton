@@ -288,12 +288,26 @@ class RecommendationRequest(BaseModel):
     exclude_team_ids: Optional[List[int]] = None  # Исключить команды
     exclude_user_ids: Optional[List[int]] = None  # Исключить пользователей
     hackathon_id: int  # ID хакатона для контекста
+    max_results: int = 10  # Максимум результатов
+    min_score: float = 0.3  # Минимальный порог совместимости
+
+
+class EnhancedRecommendation(BaseModel):
+    """Рекомендация с оценкой совместимости"""
+    recommended_user: Optional[UserResponse] = None
+    recommended_team: Optional[TeamListResponse] = None
+    compatibility_score: float  # 0.0 - 1.0
+    match_reasons: List[str] = []  # Причины рекомендации
+    
+    class Config:
+        from_attributes = True
 
 
 class RecommendationResponse(BaseModel):
     """Ответ с рекомендациями"""
-    recommended_teams: Optional[List['TeamResponse']] = None
-    recommended_users: Optional[List['UserResponse']] = None
+    recommendations: List[EnhancedRecommendation] = []
+    total_found: int = 0
     
     class Config:
         from_attributes = True
+
