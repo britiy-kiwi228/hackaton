@@ -68,7 +68,7 @@ class UserResponse(BaseModel):
     username: Optional[str]
     full_name: str
     bio: str
-    main_role: str
+    main_role: Optional[str]  # Может быть None если роль еще не выбрана
     ready_to_work: bool
     team_id: Optional[int]
     created_at: datetime
@@ -85,7 +85,7 @@ class UserListResponse(BaseModel):
     tg_id: int
     username: Optional[str]
     full_name: str
-    main_role: str
+    main_role: Optional[str]
     team_id: Optional[int]
     
     class Config:

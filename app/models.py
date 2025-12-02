@@ -87,7 +87,7 @@ class User(Base):
     username: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     full_name: Mapped[str] = mapped_column(String(255))
     bio: Mapped[str] = mapped_column(Text, default="")
-    main_role: Mapped[Role] = mapped_column(Enum(Role), index=True)
+    main_role: Mapped[Optional[Role]] = mapped_column(Enum(Role), index=True, nullable=True, default=None)  # Опциональная роль
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Foreign Key на Team

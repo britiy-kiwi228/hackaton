@@ -84,7 +84,7 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
         tg_id=user_data.tg_id,
         username=user_data.username,
         full_name=user_data.full_name,
-        main_role=Role.analyst,  # По умолчанию аналитик
+        main_role=None,  # Роль не обязательна при регистрации
         bio="",
     )
     
@@ -124,7 +124,13 @@ def update_profile(
         user.bio = user_update.bio
     
     if user_update.main_role is not None:
-        user.main_role = Role[user_update.main_role.value]
+        try:
+            user.main_role = Role[user_update.main_role.value]
+        except KeyError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неизвестная роль: {user_update.main_role}"
+            )
     
     # Обновляем навыки
     if user_update.skills is not None:
