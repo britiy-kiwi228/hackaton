@@ -68,40 +68,53 @@ try:
     # Классы представления для админ-панели
     class UserAdmin(ModelView, model=User):
         """Админ-панель для пользователей"""
-        column_list = [User.id, User.tg_id, User.username, User.full_name, User.main_role, User.team_id, User.created_at]
-        column_searchable_list = [User.full_name, User.username, User.tg_id]
+        name = "User"
+        name_plural = "Users"
+        icon = "fa-solid fa-user"
+        column_list = [User.id, User.tg_id, User.username, User.full_name, User.created_at]
+        column_searchable_list = [User.full_name, User.username]
         column_sortable_list = [User.created_at, User.full_name]
-        column_filters = [User.main_role]
+        column_details_exclude_list = [User.skills, User.team, User.requests_sent, User.teams_led, User.achievements]
         page_size = 20
 
 
     class HackathonAdmin(ModelView, model=Hackathon):
         """Админ-панель для хакатонов"""
-        column_list = [Hackathon.id, Hackathon.title, Hackathon.location, Hackathon.start_date, Hackathon.end_date, Hackathon.is_active]
+        name = "Hackathon"
+        name_plural = "Hackathons"
+        icon = "fa-solid fa-calendar"
+        column_list = [Hackathon.id, Hackathon.title, Hackathon.location, Hackathon.start_date, Hackathon.is_active]
         column_searchable_list = [Hackathon.title, Hackathon.location]
         column_sortable_list = [Hackathon.start_date, Hackathon.title]
-        column_filters = [Hackathon.is_active, Hackathon.location]
+        column_details_exclude_list = [Hackathon.teams]
         page_size = 20
 
 
     class TeamAdmin(ModelView, model=Team):
         """Админ-панель для команд"""
-        column_list = [Team.id, Team.name, Team.hackathon_id, Team.captain_id, Team.is_looking, Team.created_at]
+        name = "Team"
+        name_plural = "Teams"
+        icon = "fa-solid fa-people-group"
+        column_list = [Team.id, Team.name, Team.is_looking, Team.created_at]
         column_searchable_list = [Team.name, Team.chat_link]
         column_sortable_list = [Team.created_at, Team.name]
-        column_filters = [Team.is_looking, Team.hackathon_id]
+        column_details_exclude_list = [Team.members, Team.requests, Team.hackathon, Team.captain]
         page_size = 20
 
 
     class SkillAdmin(ModelView, model=Skill):
         """Админ-панель для навыков"""
+        name = "Skill"
+        name_plural = "Skills"
+        icon = "fa-solid fa-star"
         column_list = [Skill.id, Skill.name]
         column_searchable_list = [Skill.name]
+        column_details_exclude_list = [Skill.users]
         page_size = 50
 
 
     # Регистрируем админ-панель
-    admin = Admin(app=app, engine=engine, title="Hackathon Admin Panel")
+    admin = Admin(app=app, engine=engine, title="Hackathon Admin Panel", base_url="/admin")
     
     # Добавляем модели в админ-панель
     admin.add_model_view(UserAdmin)
@@ -114,6 +127,9 @@ try:
 
 except ImportError as e:
     logger.warning(f"⚠️  Админ-панель недоступна: {e}")
+    admin_enabled = False
+except Exception as e:
+    logger.error(f"✗ Ошибка при настройке админ-панели: {e}", exc_info=True)
     admin_enabled = False
 
 
