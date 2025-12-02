@@ -164,3 +164,67 @@ class NotificationResponse(BaseModel):
     has_notification: bool
     message: Optional[str] = None
     hackathon_id: Optional[int] = None
+
+
+# ==================== TEAM СХЕМЫ ====================
+
+class TeamCreate(BaseModel):
+    """Схема для создания команды"""
+    name: str
+    description: Optional[str] = None
+    hackathon_id: int
+
+
+class TeamUpdate(BaseModel):
+    """Схема для обновления команды"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_looking: Optional[bool] = None
+
+
+class TeamResponse(BaseModel):
+    """Полная информация о команде"""
+    id: int
+    name: str
+    description: str
+    hackathon_id: int
+    captain_id: int
+    is_looking: bool
+    created_at: datetime
+    captain: Optional['UserResponse'] = None
+    members: List['UserResponse'] = []
+    
+    class Config:
+        from_attributes = True
+
+
+class TeamListResponse(BaseModel):
+    """Краткая информация о команде"""
+    id: int
+    name: str
+    hackathon_id: int
+    captain_id: int
+    is_looking: bool
+    
+    class Config:
+        from_attributes = True
+
+
+class TeamRequestCreate(BaseModel):
+    """Схема для создания заявки в команду"""
+    team_id: int
+    is_invite: bool = False  # False = юзер постучался, True = капитан пригласил
+
+
+class TeamRequestResponse(BaseModel):
+    """Информация о заявке в команду"""
+    id: int
+    user_id: int
+    team_id: int
+    is_invite: bool
+    status: str
+    created_at: datetime
+    user: Optional['UserListResponse'] = None
+    
+    class Config:
+        from_attributes = True

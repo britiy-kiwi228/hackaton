@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +32,13 @@ except Exception as e:
     logger.error(f"✗ Ошибка импорта users router: {e}", exc_info=True)
     raise
 
+try:
+    from app.routers import teams
+    logger.info("✓ Teams router импортирован")
+except Exception as e:
+    logger.error(f"✗ Ошибка импорта teams router: {e}", exc_info=True)
+    raise
+
 # Импортируем модели для админ-панели
 from app.models import User, Hackathon, Team, Skill, Achievement
 
@@ -44,6 +53,39 @@ except Exception as e:
 app = FastAPI(title="Hackathon API")
 logger.info("✓ FastAPI приложение создано")
 
+# ==================== MIDDLEWARE ====================
+
+class AddUserToRequestMiddleware(BaseHTTPMiddleware):
+    """Middleware для добавления текущего пользователя в request.state"""
+    
+    async def dispatch(self, request: Request, call_next):
+        # Получаем user_id из query параметров (для тестирования)
+        # В реальности это будет из JWT токена
+        user_id = request.query_params.get("user_id")
+        
+        if user_id:
+            try:
+                user_id = int(user_id)
+                # Получаем пользователя из БД
+                from app.database import SessionLocal
+                db = SessionLocal()
+                user = db.query(User).filter(User.id == user_id).first()
+                db.close()
+                
+                if user:
+                    request.state.user = user
+                    logger.debug(f"✓ Пользователь {user.full_name} добавлен в request.state")
+            except Exception as e:
+                logger.warning(f"⚠️  Ошибка при получении пользователя: {e}")
+        
+        response = await call_next(request)
+        return response
+
+
+# Добавляем middleware
+app.add_middleware(AddUserToRequestMiddleware)
+logger.info("✓ Middleware добавлен")
+
 # НАСТРОЙКА CORS (ОЧЕНЬ ВАЖНО!)
 # Это разрешает фронтенду стучаться к тебе
 app.add_middleware(
@@ -57,6 +99,7 @@ app.add_middleware(
 # Подключаем роутеры
 app.include_router(hackathons.router)
 app.include_router(users.router)
+app.include_router(teams.router)
 logger.info("✓ Роутеры подключены")
 
 
