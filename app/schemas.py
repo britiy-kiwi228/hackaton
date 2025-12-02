@@ -35,6 +35,7 @@ class UserUpdate(BaseModel):
     """Схема для обновления профиля"""
     bio: Optional[str] = None
     main_role: Optional[RoleEnum] = None
+    ready_to_work: Optional[bool] = None  # Готов ли работать
     skills: Optional[List[str]] = None  # Список названий навыков
 
 

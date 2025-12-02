@@ -88,6 +88,7 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255))
     bio: Mapped[str] = mapped_column(Text, default="")
     main_role: Mapped[Optional[Role]] = mapped_column(Enum(Role), index=True, nullable=True, default=None)  # Опциональная роль
+    ready_to_work: Mapped[bool] = mapped_column(Boolean, default=True)  # Готов ли работать (в проектах)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Foreign Key на Team

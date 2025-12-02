@@ -85,6 +85,7 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
         username=user_data.username,
         full_name=user_data.full_name,
         main_role=None,  # Роль не обязательна при регистрации
+        ready_to_work=True,  # По умолчанию готов работать
         bio="",
     )
     
@@ -131,6 +132,9 @@ def update_profile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Неизвестная роль: {user_update.main_role}"
             )
+    
+    if user_update.ready_to_work is not None:
+        user.ready_to_work = user_update.ready_to_work
     
     # Обновляем навыки
     if user_update.skills is not None:
