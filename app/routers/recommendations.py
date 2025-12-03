@@ -3,19 +3,19 @@
 """
 from typing import List, Set, Tuple
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.requests import Request as StarletteRequest # Оставляем, если нужен для других целей
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
+
 from app.database import get_db
 from app.models import User, Team, Skill, Request as RequestModel, RequestStatus, RequestType
 from app.schemas import (
-    RecommendationRequest,
-    RecommendationResponse,
-    UserResponse,
+    RecommendationRequest, 
+    RecommendationResponse, 
+    UserResponse, 
     TeamListResponse,
     EnhancedRecommendation
 )
-from app.utils.security import get_current_user # Импортируем новую зависимость
+from app.utils.security import get_current_user  # Импортируем новую зависимость
 
 router = APIRouter(
     prefix="/recommendations",
@@ -78,105 +78,164 @@ def get_team_skills(team: Team) -> Set[str]:
 def calculate_skill_coverage(user_skills: Set[str], needed_skills: Set[str]) -> float:
     """
     Рассчитать, какой процент нужных навыков покрывает пользователь
-
+    
     Args:
         user_skills: набор навыков пользователя
         needed_skills: набор нужных навыков
-
+    
     Returns:
-        float: процент покрытия (0.0 - 1.0)
+        float: Процент покрытия (0.0 - 1.0)
     """
     if not needed_skills:
-        return 1.0 if not user_skills else 0.5  # Нейтральная оценка если нет требований
-
-    matches = len(user_skills & needed_skills)
-    return matches / len(needed_skills)
-
-
-def calculate_role_match(user_role: str, needed_roles: Set[str]) -> float:
-    """
-    Рассчитать совпадение роли
-
-    Args:
-        user_role: роль пользователя
-        needed_roles: набор нужных ролей
-
-    Returns:
-        float: оценка совпадения (0.0 - 1.0)
-    """
-    if not needed_roles:
-        return 0.5  # Нейтральная оценка если нет требований
-
-    if not user_role:
         return 0.0
+    covered = len(user_skills.intersection(needed_skills))
+    return covered / len(needed_skills)
 
-    return 1.0 if user_role.lower() in needed_roles else 0.3
+
+def calculate_role_need(team_roles: Set[str], preferred_roles: List[str]) -> Tuple[float, List[str]]:
+    """
+    Рассчитать необходимость роли
+    
+    Args:
+        team_roles: текущие роли в команде
+        preferred_roles: предпочитаемые роли
+    
+    Returns:
+        Tuple[float, List[str]]: (score, reasons)
+    """
+    if not preferred_roles:
+        return 0.0, []
+    
+    preferred_set = {r.lower() for r in preferred_roles}
+    missing_roles = preferred_set - team_roles
+    if not missing_roles:
+        return 0.0, []
+    
+    coverage = len(missing_roles) / len(preferred_set)
+    reasons = [f"Нужна роль: {role}" for role in missing_roles]
+    return coverage * 0.4, reasons  # Вес роли - 40%
+
+
+def calculate_skill_need(team_skills: Set[str], preferred_skills: List[str]) -> Tuple[float, List[str]]:
+    """
+    Рассчитать необходимость навыков
+    
+    Args:
+        team_skills: текущие навыки команды
+        preferred_skills: предпочитаемые навыки
+    
+    Returns:
+        Tuple[float, List[str]]: (score, reasons)
+    """
+    if not preferred_skills:
+        return 0.0, []
+    
+    preferred_set = {s.lower() for s in preferred_skills}
+    missing_skills = preferred_set - team_skills
+    if not missing_skills:
+        return 0.0, []
+    
+    coverage = len(missing_skills) / len(preferred_set)
+    reasons = [f"Нужен навык: {skill}" for skill in missing_skills]
+    return coverage * 0.3, reasons  # Вес навыков - 30%
+
+
+def calculate_collaboration_potential(user: User, team: Team) -> Tuple[float, List[str]]:
+    """
+    Рассчитать потенциал сотрудничества на основе предыдущих взаимодействий
+    
+    Args:
+        user: кандидат
+        team: команда
+    
+    Returns:
+        Tuple[float, List[str]]: (score, reasons)
+    """
+    score = 0.0
+    reasons = []
+    
+    # Проверяем предыдущие запросы
+    previous_requests = db.query(RequestModel).filter(
+        and_(
+            RequestModel.hackathon_id == team.hackathon_id,
+            or_(
+                and_(
+                    RequestModel.sender_id == user.id,
+                    RequestModel.team_id == team.id
+                ),
+                and_(
+                    RequestModel.receiver_id == user.id,
+                    RequestModel.team_id == team.id
+                )
+            )
+        )
+    ).all()
+    
+    if previous_requests:
+        accepted = sum(1 for r in previous_requests if r.status == RequestStatus.accepted)
+        if accepted > 0:
+            score += 0.2
+            reasons.append(f"Уже сотрудничали ранее ({accepted} раз)")
+    
+    # Общие навыки с командой
+    user_skills = get_user_skills(user)
+    team_skills = get_team_skills(team)
+    common_skills = user_skills.intersection(team_skills)
+    if common_skills:
+        score += min(len(common_skills) * 0.05, 0.2)
+        reasons.append(f"Общие навыки: {', '.join(list(common_skills)[:3])}")
+    
+    return min(score, 0.3), reasons  # Макс вес - 30%
 
 
 def calculate_team_compatibility(
-    user: User,
-    team: Team,
+    team: Team, 
     preferred_roles: List[str] = None,
     preferred_skills: List[str] = None
 ) -> Tuple[float, List[str]]:
     """
-    Рассчитать совместимость пользователя с командой
-
-    Алгоритм:
-    1. Получить навыки, которые есть у пользователя
-    2. Получить навыки, которые уже есть в команде
-    3. Получить недостающие навыки (потребности команды)
-    4. Рассчитать, сколько недостающих навыков может покрыть пользователь
-    5. Добавить бонус, если роль пользователя отсутствует в команде
-
+    Рассчитать совместимость команды с предпочтениями
+    
+    Args:
+        team: Команда-кандидат
+        preferred_roles: Предпочитаемые роли
+        preferred_skills: Предпочитаемые навыки
+    
     Returns:
-        Tuple[совместимость (0.0-1.0), список причин рекомендации]
+        Tuple[float, List[str]]: (score, reasons)
     """
-    user_skills = get_user_skills(user)
-    team_skills = get_team_skills(team)
-    team_roles = get_user_roles_in_team(team)
-
-    # Преобразовать предпочтения в нижний регистр
-    pref_skills = set(s.lower() for s in (preferred_skills or []))
-    pref_roles = set(r.lower() for r in (preferred_roles or []))
-
-    # Определить нужные навыки
-    # 1. Если есть preferred_skills, ищем их
-    # 2. Иначе ищем навыки, которых нет в команде
-    if pref_skills:
-        needed_skills = pref_skills
-    else:
-        needed_skills = user_skills - team_skills if user_skills else set()
-
     reasons = []
     score = 0.0
-
-    # Оценка за навыки (60% веса)
-    skill_score = calculate_skill_coverage(user_skills, needed_skills)
-    score += skill_score * 0.6
-
-    if skill_score > 0:
-        skill_count = len(user_skills & needed_skills)
-        reasons.append(f"Может покрыть {skill_count} навык(и)")
-
-    # Оценка за роль (40% веса)
-    if user.main_role:
-        if pref_roles:
-            role_score = 1.0 if user.main_role.lower() in pref_roles else 0.0
-        else:
-            role_score = 1.0 if user.main_role.lower() not in team_roles else 0.3
-
-        score += role_score * 0.4
-
-        if role_score > 0.5:
-            reasons.append(f"Нужна роль '{user.main_role}'")
-
-    # Бонус за готовность работать
-    if user.ready_to_work:
-        score = min(1.0, score + 0.05)
-        reasons.append("Готов работать")
-
-    return min(1.0, score), reasons
+    
+    # Текущие роли и навыки команды
+    team_roles = get_user_roles_in_team(team)
+    team_skills = get_team_skills(team)
+    
+    # Необходимость ролей
+    role_score, role_reasons = calculate_role_need(team_roles, preferred_roles or [])
+    score += role_score
+    reasons.extend(role_reasons)
+    
+    # Необходимость навыков
+    skill_score, skill_reasons = calculate_skill_need(team_skills, preferred_skills or [])
+    score += skill_score
+    reasons.extend(skill_reasons)
+    
+    # Размер команды (оптимально 3-5 человек)
+    member_count = len(team.members)
+    if 3 <= member_count <= 5:
+        score += 0.1
+        reasons.append(f"Оптимальный размер команды: {member_count} участников")
+    elif member_count < 3:
+        score += 0.05
+        reasons.append(f"Маленькая команда: {member_count} участников (нуждается в людях)")
+    
+    # Активность капитана
+    if team.captain.ready_to_work:
+        score += 0.1
+        reasons.append("Капитан готов к работе")
+    
+    return min(score, 1.0), reasons
 
 
 def calculate_user_compatibility(
@@ -185,293 +244,201 @@ def calculate_user_compatibility(
     preferred_skills: List[str] = None
 ) -> Tuple[float, List[str]]:
     """
-    Рассчитать совместимость кандидата с требованиями команды
-
-    Алгоритм:
-    1. Получить навыки кандидата
-    2. Получить роль кандидата
-    3. Проверить совпадение с preferred_skills и preferred_roles
-
+    Рассчитать совместимость пользователя с предпочтениями
+    
+    Args:
+        candidate: Кандидат
+        preferred_roles: Предпочитаемые роли
+        preferred_skills: Предпочитаемые навыки
+    
     Returns:
-        Tuple[совместимость (0.0-1.0), список причин рекомендации]
+        Tuple[float, List[str]]: (score, reasons)
     """
-    candidate_skills = get_user_skills(candidate)
-
-    # Преобразовать требования
-    pref_skills = set(s.lower() for s in (preferred_skills or []))
-    pref_roles = set(r.lower() for r in (preferred_roles or []))
-
     reasons = []
     score = 0.0
-
-    # Оценка за навыки (60% веса)
-    if pref_skills:
-        skill_score = calculate_skill_coverage(candidate_skills, pref_skills)
-        score += skill_score * 0.6
-
-        matched_skills = candidate_skills & pref_skills
+    
+    # Проверка роли
+    if preferred_roles and candidate.main_role:
+        candidate_role = candidate.main_role.value.lower() if hasattr(candidate.main_role, 'value') else str(candidate.main_role).lower()
+        if candidate_role in {r.lower() for r in preferred_roles}:
+            score += 0.4
+            reasons.append(f"Подходит роль: {candidate_role}")
+    
+    # Проверка навыков
+    candidate_skills = get_user_skills(candidate)
+    if preferred_skills:
+        coverage = calculate_skill_coverage(candidate_skills, {s.lower() for s in preferred_skills})
+        score += coverage * 0.3
+        matched_skills = candidate_skills.intersection({s.lower() for s in preferred_skills})
         if matched_skills:
-            reasons.append(f"Имеет {len(matched_skills)} требуемый(е) навык(и)")
-    else:
-        # Если нет предпочтений, оценить просто наличие навыков
-        score += 0.3 if candidate_skills else 0.0
-
-    # Оценка за роль (40% веса)
-    if pref_roles:
-        if candidate.main_role:
-            role_score = 1.0 if candidate.main_role.lower() in pref_roles else 0.0
-        else:
-            role_score = 0.0
-        score += role_score * 0.4
-
-        if role_score > 0:
-            reasons.append(f"Роль '{candidate.main_role}' соответствует")
-    else:
-        # Если нет требований по ролям, оценить просто наличие роли
-        if candidate.main_role:
-            score += 0.2
-            reasons.append(f"Специалист в '{candidate.main_role}'")
-
-    # Бонус за готовность работать
+            reasons.append(f"Навыки: {', '.join(list(matched_skills)[:3])}")
+    
+    # Дополнительные факторы
     if candidate.ready_to_work:
-        score = min(1.0, score + 0.1)
-        reasons.append("Активно ищет команду")
-
-    return min(1.0, score), reasons
-
+        score += 0.1
+        reasons.append("Готов к работе")
+    
+    if candidate.achievements:
+        score += min(len(candidate.achievements) * 0.05, 0.2)
+        reasons.append(f"Имеет достижения: {len(candidate.achievements)}")
+    
+    return min(score, 1.0), reasons
 
 
 @router.post("/", response_model=RecommendationResponse)
 async def get_recommendations(
-    # http_request: StarletteRequest, # Убираем
     rec_request: RecommendationRequest,
-    current_user: User = Depends(get_current_user), # Добавляем
+    current_user: User = Depends(get_current_user),  # Заменяем http_request
     db: Session = Depends(get_db)
 ):
     """
-    Получить рекомендации для пользователя или команды с детальной оценкой совместимости
-
-    **Параметры:**
-    - **for_what**: "team" (рекомендации команд для пользователя) или "user" (рекомендации пользователей для команды)
-    - **preferred_roles**: Список предпочитаемых ролей
-    - **preferred_skills**: Список предпочитаемых навыков
-    - **exclude_team_ids**: Список ID команд для исключения
-    - **exclude_user_ids**: Список ID пользователей для исключения
-    - **hackathon_id**: ID хакатона для фильтрации
-    - **max_results**: Максимальное количество результатов (по умолчанию 10)
-    - **min_score**: Минимальная оценка совместимости (0.0-1.0, по умолчанию 0.3)
+    POST /recommendations/
+    Получить рекомендации команд/пользователей.
+    
+    Тело запроса: RecommendationRequest
     """
-    try:
-        # current_user = get_current_user_from_request(http_request) # Убираем
-        # current_user уже получен из JWT
+    # current_user = get_current_user_from_request(http_request)  # Убираем
 
+    recommendations_list = []
+    
+    if rec_request.for_what == "team":
+        # Рекомендации команд для пользователя
         exclude_team_ids = rec_request.exclude_team_ids or []
-        exclude_user_ids = rec_request.exclude_user_ids or []
-
-        if rec_request.for_what == "team":
-            # ===== РЕКОМЕНДАЦИИ КОМАНД ПОЛЬЗОВАТЕЛЮ =====
-
-            # Получить команды, в которых пользователь не состоит
-            teams_query = db.query(Team).filter(
-                and_(
-                    Team.hackathon_id == rec_request.hackathon_id,
-                    Team.id.notin_(exclude_team_ids) if exclude_team_ids else True
-                )
+        
+        teams_query = db.query(Team).filter(
+            and_(
+                Team.hackathon_id == rec_request.hackathon_id,
+                Team.id.notin_(exclude_team_ids),
+                Team.captain_id != current_user.id
             )
-
-            teams = teams_query.all()
-
-            # Фильтруем команды, в которых пользователь уже состоит
-            filtered_teams = []
-            for t in teams:
-                try:
-                    # Безопасно получаем members
-                    try:
-                        members = list(t.members) if t.members else []
-                        member_ids = [m.id for m in members if m and hasattr(m, 'id')]
-                    except Exception:
-                        member_ids = []
-
-                    # Проверяем также через team_id пользователя
-                    if current_user.id not in member_ids and (not current_user.team_id or current_user.team_id != t.id):
-                        filtered_teams.append(t)
-                except Exception as e:
-                    # Пропускаем команду если не можем проверить
-                    continue
-
-            teams = filtered_teams
-            recommendations_list = []
-
-            for team in teams:
-                try:
-                    score, reasons = calculate_team_compatibility(
-                        user=current_user,
-                        team=team,
-                        preferred_roles=rec_request.preferred_roles,
-                        preferred_skills=rec_request.preferred_skills
-                    )
-
-                    # Добавить если оценка выше минимума
-                    if score >= rec_request.min_score:
-                        # Создаем TeamResponse вручную чтобы избежать проблем с вложенными объектами
-                        team_response = TeamListResponse(
-                            id=team.id,
-                            name=team.name,
-                            hackathon_id=team.hackathon_id,
-                            captain_id=team.captain_id,
-                            is_looking=team.is_looking if hasattr(team, 'is_looking') else True
-                        )
-                        recommendations_list.append(EnhancedRecommendation(
-                            recommended_team=team_response,
-                            recommended_user=None,
-                            compatibility_score=score,
-                            match_reasons=reasons
-                        ))
-                except Exception as e:
-                    # Пропускаем команду если возникла ошибка при расчете
-                    continue
-
-            # Сортировать и ограничить результаты
-            recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
-            recommendations_list = recommendations_list[:rec_request.max_results]
-
-            return RecommendationResponse(
-                recommendations=recommendations_list,
-                total_found=len(recommendations_list)
+        )
+        
+        teams = teams_query.all()
+        
+        for team in teams:
+            score, reasons = calculate_team_compatibility(
+                team=team,
+                preferred_roles=rec_request.preferred_roles,
+                preferred_skills=rec_request.preferred_skills
             )
-
-        elif rec_request.for_what == "user":
-            # ===== РЕКОМЕНДАЦИИ ПОЛЬЗОВАТЕЛЕЙ КОМАНДЕ =====
-
-            # Найти команду текущего пользователя (где он капитан)
-            user_team = db.query(Team).filter(Team.captain_id == current_user.id).first()
-
-            if not user_team:
-                raise HTTPException(
-                    status_code=400,
-                    detail="User must be a team captain to get user recommendations"
-                )
-
-            # Получить пользователей для рекомендации
-            # Исключаем пользователей, которые уже в команде капитана
-            try:
-                members = list(user_team.members) if user_team.members else []
-                member_ids = [m.id for m in members if m and hasattr(m, 'id')]
-            except Exception:
-                member_ids = []
-
-            filter_conditions = [
-                User.id.notin_(exclude_user_ids) if exclude_user_ids else True,
-                User.ready_to_work == True,
-                User.id != current_user.id,
-                User.id.notin_(member_ids)  # Исключаем уже состоящих в команде
-            ]
-
-            users_query = db.query(User).filter(and_(*filter_conditions))
-
-            users = users_query.all()
-            recommendations_list = []
-
-            for user in users:
-                try:
-                    score, reasons = calculate_user_compatibility(
-                        candidate=user,
-                        preferred_roles=rec_request.preferred_roles,
-                        preferred_skills=rec_request.preferred_skills
-                    )
-
-                    # Добавить если оценка выше минимума
-                    if score >= rec_request.min_score:
-                        # Создаем UserResponse вручную чтобы избежать проблем с lazy loading
-                        from app.schemas import SkillResponse
-                        user_skills_data = [SkillResponse(id=s.id, name=s.name) for s in (user.skills or [])]
-
-                        user_response = UserResponse(
-                            id=user.id,
-                            tg_id=user.tg_id,
-                            username=user.username,
-                            full_name=user.full_name,
-                            bio=user.bio or "",
-                            main_role=user.main_role.value if user.main_role else None,
-                            ready_to_work=user.ready_to_work,
-                            team_id=user.team_id,
-                            created_at=user.created_at,
-                            skills=user_skills_data,
-                            achievements=[]
-                        )
-
-                        recommendations_list.append(EnhancedRecommendation(
-                            recommended_user=user_response,
-                            recommended_team=None,
-                            compatibility_score=score,
-                            match_reasons=reasons
-                        ))
-                except Exception as e:
-                    # Пропускаем пользователя если возникла ошибка
-                    continue
-
-            # Сортировать и ограничить результаты
-            recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
-            recommendations_list = recommendations_list[:rec_request.max_results]
-
-            return RecommendationResponse(
-                recommendations=recommendations_list,
-                total_found=len(recommendations_list)
+            
+            # Добавить потенциал сотрудничества
+            collab_score, collab_reasons = calculate_collaboration_potential(current_user, team)
+            score += collab_score
+            reasons.extend(collab_reasons)
+            
+            if score >= rec_request.min_score:
+                recommendations_list.append(EnhancedRecommendation(
+                    recommended_user=None,
+                    recommended_team=TeamListResponse.from_orm(team),
+                    compatibility_score=min(score, 1.0),
+                    match_reasons=reasons
+                ))
+    
+    elif rec_request.for_what == "user":
+        # Рекомендации пользователей для команды
+        # Находим команду пользователя
+        user_team = db.query(Team).filter(
+            and_(
+                Team.captain_id == current_user.id,
+                Team.hackathon_id == rec_request.hackathon_id
             )
-
-        else:
+        ).first()
+        
+        if not user_team:
             raise HTTPException(
                 status_code=400,
-                detail="for_what must be 'team' or 'user'"
+                detail="You must be a team captain to request user recommendations"
             )
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"ERROR in recommendations: {error_details}")  # Логирование для отладки
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}. Type: {type(e).__name__}"
+        
+        # Собрать членов команды для исключения
+        team_member_ids = {member.id for member in user_team.members}
+        
+        exclude_user_ids = list(team_member_ids)
+        if rec_request.exclude_user_ids:
+            exclude_user_ids.extend(rec_request.exclude_user_ids)
+        
+        users_query = db.query(User).filter(
+            and_(
+                User.id.notin_(exclude_user_ids),
+                User.ready_to_work == True,
+                User.id != current_user.id
+            )
         )
+        
+        users = users_query.all()
+        
+        for user in users:
+            score, reasons = calculate_user_compatibility(
+                candidate=user,
+                preferred_roles=rec_request.preferred_roles,
+                preferred_skills=rec_request.preferred_skills
+            )
+            
+            # Добавить потенциал сотрудничества
+            collab_score, collab_reasons = calculate_collaboration_potential(user, user_team)
+            score += collab_score
+            reasons.extend(collab_reasons)
+            
+            if score >= rec_request.min_score:
+                recommendations_list.append(EnhancedRecommendation(
+                    recommended_user=UserResponse.from_orm(user),
+                    recommended_team=None,
+                    compatibility_score=min(score, 1.0),
+                    match_reasons=reasons
+                ))
+    
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail='for_what must be "team" or "user"'
+        )
+    
+    # Сортировать и ограничить результаты
+    recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
+    recommendations_list = recommendations_list[:rec_request.max_results]
+    
+    return RecommendationResponse(
+        recommendations=recommendations_list,
+        total_found=len(recommendations_list)
+    )
 
 
 @router.post("/teams/{team_id}", response_model=RecommendationResponse)
-async def get_team_recommendations(
-    # http_request: StarletteRequest, # Убираем
+async def get_recommendations_for_team(
     team_id: int,
     rec_request: RecommendationRequest,
-    current_user: User = Depends(get_current_user), # Добавляем
+    current_user: User = Depends(get_current_user),  # Заменяем http_request
     db: Session = Depends(get_db)
 ):
     """
-    Получить рекомендации пользователей для конкретной команды
-    с детальной оценкой совместимости
-
-    Требуется быть капитаном команды
+    POST /recommendations/teams/{team_id}
+    Получить рекомендации пользователей для конкретной команды.
+    Только капитан может.
     """
-    # current_user = get_current_user_from_request(http_request) # Убираем
-    # current_user уже получен из JWT
+    # current_user = get_current_user_from_request(http_request)  # Убираем
 
-    # Получить команду
     team = db.query(Team).filter(Team.id == team_id).first()
+    
     if not team:
-        raise HTTPException(status_code=404, detail="Team not found")
-
-    # Проверить, что текущий пользователь капитан
+        raise HTTPException(
+            status_code=404,
+            detail="Team not found"
+        )
+    
     if team.captain_id != current_user.id:
         raise HTTPException(
             status_code=403,
             detail="Only team captain can request recommendations for this team"
         )
-
+    
     # Собрать членов команды для исключения
     team_member_ids = {member.id for member in team.members}
-
+    
     exclude_user_ids = list(team_member_ids)
     if rec_request.exclude_user_ids:
         exclude_user_ids.extend(rec_request.exclude_user_ids)
-
+    
     # Получить пользователей для рекомендации
     users_query = db.query(User).filter(
         and_(
@@ -480,17 +447,17 @@ async def get_team_recommendations(
             User.id != current_user.id
         )
     )
-
+    
     users = users_query.all()
     recommendations_list = []
-
+    
     for user in users:
         score, reasons = calculate_user_compatibility(
             candidate=user,
             preferred_roles=rec_request.preferred_roles,
             preferred_skills=rec_request.preferred_skills
         )
-
+        
         # Добавить если оценка выше минимума
         if score >= rec_request.min_score:
             recommendations_list.append(EnhancedRecommendation(
@@ -499,11 +466,11 @@ async def get_team_recommendations(
                 compatibility_score=score,
                 match_reasons=reasons
             ))
-
+    
     # Сортировать и ограничить результаты
     recommendations_list.sort(key=lambda x: x.compatibility_score, reverse=True)
     recommendations_list = recommendations_list[:rec_request.max_results]
-
+    
     return RecommendationResponse(
         recommendations=recommendations_list,
         total_found=len(recommendations_list)
@@ -512,23 +479,21 @@ async def get_team_recommendations(
 
 @router.get("/stats", response_model=dict)
 async def get_recommendation_stats(
-    # http_request: StarletteRequest, # Убираем
-    current_user: User = Depends(get_current_user), # Добавляем
+    current_user: User = Depends(get_current_user),  # Заменяем http_request
     db: Session = Depends(get_db)
 ):
     """
     Получить статистику по рекомендациям
     """
-    # current_user = get_current_user_from_request(http_request) # Убираем
-    # current_user уже получен из JWT
-
+    # current_user = get_current_user_from_request(http_request)  # Убираем
+    
     # Получить команду пользователя (если он капитан)
     user_team = db.query(Team).filter(Team.captain_id == current_user.id).first()
-
+    
     total_users = db.query(func.count(User.id)).scalar()
     total_teams = db.query(func.count(Team.id)).scalar()
     active_users = db.query(func.count(User.id)).filter(User.ready_to_work == True).scalar()
-
+    
     stats = {
         "total_users": total_users,
         "total_teams": total_teams,
@@ -539,5 +504,5 @@ async def get_recommendation_stats(
             "member_count": len(user_team.members)
         } if user_team else None
     }
-
+    
     return stats
