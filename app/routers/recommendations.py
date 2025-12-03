@@ -23,14 +23,6 @@ router = APIRouter(
 )
 
 
-# УБИРАЕМ СТАРУЮ ФУНКЦИЮ get_current_user_from_request
-# def get_current_user_from_request(http_request: StarletteRequest) -> User:
-#     """Получить текущего пользователя из request.state"""
-#     if not hasattr(http_request, 'state') or not hasattr(http_request.state, 'user'):
-#         raise HTTPException(status_code=401, detail="User not authenticated")
-#     return http_request.state.user
-
-
 def get_user_skills(user: User) -> Set[str]:
     """Получить набор навыков пользователя"""
     try:
@@ -140,13 +132,14 @@ def calculate_skill_need(team_skills: Set[str], preferred_skills: List[str]) -> 
     return coverage * 0.3, reasons  # Вес навыков - 30%
 
 
-def calculate_collaboration_potential(user: User, team: Team) -> Tuple[float, List[str]]:
+def calculate_collaboration_potential(user: User, team: Team, db: Session) -> Tuple[float, List[str]]:
     """
     Рассчитать потенциал сотрудничества на основе предыдущих взаимодействий
     
     Args:
         user: кандидат
         team: команда
+        db: сессия БД
     
     Returns:
         Tuple[float, List[str]]: (score, reasons)
@@ -297,8 +290,6 @@ async def get_recommendations(
     
     Тело запроса: RecommendationRequest
     """
-    # current_user = get_current_user_from_request(http_request)  # Убираем
-
     recommendations_list = []
     
     if rec_request.for_what == "team":
@@ -323,7 +314,7 @@ async def get_recommendations(
             )
             
             # Добавить потенциал сотрудничества
-            collab_score, collab_reasons = calculate_collaboration_potential(current_user, team)
+            collab_score, collab_reasons = calculate_collaboration_potential(current_user, team, db)
             score += collab_score
             reasons.extend(collab_reasons)
             
@@ -376,7 +367,7 @@ async def get_recommendations(
             )
             
             # Добавить потенциал сотрудничества
-            collab_score, collab_reasons = calculate_collaboration_potential(user, user_team)
+            collab_score, collab_reasons = calculate_collaboration_potential(user, user_team, db)
             score += collab_score
             reasons.extend(collab_reasons)
             
@@ -416,8 +407,6 @@ async def get_recommendations_for_team(
     Получить рекомендации пользователей для конкретной команды.
     Только капитан может.
     """
-    # current_user = get_current_user_from_request(http_request)  # Убираем
-
     team = db.query(Team).filter(Team.id == team_id).first()
     
     if not team:
@@ -485,7 +474,6 @@ async def get_recommendation_stats(
     """
     Получить статистику по рекомендациям
     """
-    # current_user = get_current_user_from_request(http_request)  # Убираем
     
     # Получить команду пользователя (если он капитан)
     user_team = db.query(Team).filter(Team.captain_id == current_user.id).first()
