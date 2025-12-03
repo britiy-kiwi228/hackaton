@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List
 from enum import Enum
 
 # Импортируем Enum Role из моделей (для использования в схемах)
@@ -310,12 +310,4 @@ class RecommendationResponse(BaseModel):
     
     class Config:
         from_attributes = True
-
-
-class TelegramAuthRequest(BaseModel):
-    auth_data: Dict[str, str]
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 

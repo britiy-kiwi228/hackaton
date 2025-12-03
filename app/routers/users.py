@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+# app/routers/users.py
+
+from fastapi import APIRouter, Depends, HTTPException, status, Query # Убираем Request из импортов
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import List, Optional
-
 from app.database import get_db
 from app.models import User, Skill, Role, Achievement
 from app.schemas import (
@@ -11,6 +12,7 @@ from app.schemas import (
     UserResponse,
     UserListResponse,
 )
+from app.utils.security import get_current_user # Импортируем новую зависимость
 
 # ==================== РОУТЕР ====================
 
@@ -24,13 +26,13 @@ def get_or_create_skill(db: Session, skill_name: str) -> Skill:
     Получить навык по названию, или создать новый если его нет.
     """
     skill = db.query(Skill).filter(Skill.name.ilike(skill_name)).first()
-    
+
     if not skill:
         skill = Skill(name=skill_name)
         db.add(skill)
         db.commit()
         db.refresh(skill)
-    
+
     return skill
 
 
@@ -41,16 +43,16 @@ def update_user_skills(db: Session, user: User, skill_names: List[str]):
     """
     if not skill_names:
         return
-    
+
     # Очищаем старые навыки
     user.skills.clear()
-    
+
     # Добавляем новые
     for skill_name in skill_names:
         skill = get_or_create_skill(db, skill_name)
         if skill not in user.skills:
             user.skills.append(skill)
-    
+
     db.commit()
 
 
@@ -61,7 +63,7 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
     """
     POST /users/auth/telegram
     Аутентификация через Telegram.
-    
+
     Логика:
     - Ищем пользователя по tg_id
     - Если есть: возвращаем его
@@ -69,7 +71,7 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
     """
     # Ищем пользователя по tg_id
     user = db.query(User).filter(User.tg_id == user_data.tg_id).first()
-    
+
     if user:
         # Обновляем username и full_name если нужно
         if user_data.username:
@@ -78,7 +80,7 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
         return user
-    
+
     # Создаем нового пользователя
     new_user = User(
         tg_id=user_data.tg_id,
@@ -88,42 +90,37 @@ def telegram_auth(user_data: UserLogin, db: Session = Depends(get_db)):
         ready_to_work=True,  # По умолчанию готов работать
         bio="",
     )
-    
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
     return new_user
 
 
 # ==================== ПРОФИЛЬ ====================
 
+# УБИРАЕМ Query параметр user_id, так как он теперь берётся из JWT
 @router.patch("/me", response_model=UserResponse)
 def update_profile(
-    user_id: int = Query(..., description="ID пользователя для обновления"),
     user_update: UserUpdate = None,
+    current_user: User = Depends(get_current_user), # Добавляем зависимость
     db: Session = Depends(get_db)
 ):
     """
-    PATCH /users/me?user_id={user_id}
+    PATCH /users/me
     Обновление своего профиля.
-    
+
     Параметры:
-    - user_id: ID пользователя (в реальности должно быть из JWT токена)
     - Тело запроса: bio, main_role, skills
     """
-    user = db.query(User).filter(User.id == user_id).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Пользователь с ID {user_id} не найден"
-        )
-    
+    # current_user уже получен из JWT
+    user = current_user
+
     # Обновляем поля
     if user_update.bio is not None:
         user.bio = user_update.bio
-    
+
     if user_update.main_role is not None:
         try:
             user.main_role = Role[user_update.main_role.value]
@@ -132,18 +129,18 @@ def update_profile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Неизвестная роль: {user_update.main_role}"
             )
-    
+
     if user_update.ready_to_work is not None:
         user.ready_to_work = user_update.ready_to_work
-    
+
     # Обновляем навыки
     if user_update.skills is not None:
         update_user_skills(db, user, user_update.skills)
-    
+
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     return user
 
 
@@ -160,7 +157,7 @@ def get_users(
     """
     GET /users/
     Получить список пользователей с фильтрами.
-    
+
     Query параметры:
     - role: фильтр по роли
     - hackathon_id: получить участников хакатона
@@ -168,7 +165,7 @@ def get_users(
     - limit: лимит результатов
     """
     query = db.query(User)
-    
+
     # Фильтр по роли
     if role:
         try:
@@ -179,7 +176,7 @@ def get_users(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Неизвестная роль: {role}. Допустимые: backend, frontend, design, pm, analyst"
             )
-    
+
     # Фильтр по хакатону (пользователи, которые уже в команде этого хакатона)
     if hackathon_id:
         # JOIN с Team где hackathon_id совпадает и user_id совпадает
@@ -187,10 +184,10 @@ def get_users(
         query = query.join(Team, User.team_id == Team.id).filter(
             Team.hackathon_id == hackathon_id
         )
-    
+
     # Пагинация
     users = query.offset(skip).limit(limit).all()
-    
+
     return users
 
 
@@ -201,7 +198,7 @@ def get_user_detail(user_id: int, db: Session = Depends(get_db)):
     """
     GET /users/{user_id}
     Получить детальную информацию о пользователе.
-    
+
     Включает:
     - Основную информацию
     - Список навыков
@@ -209,13 +206,13 @@ def get_user_detail(user_id: int, db: Session = Depends(get_db)):
     - Информацию о команде
     """
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с ID {user_id} не найден"
         )
-    
+
     return user
 
 
@@ -228,13 +225,13 @@ def get_user_by_tg_id(tg_id: int, db: Session = Depends(get_db)):
     Получить пользователя по Telegram ID.
     """
     user = db.query(User).filter(User.tg_id == tg_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с tg_id {tg_id} не найден"
         )
-    
+
     return user
 
 
@@ -245,13 +242,13 @@ def get_user_by_username(username: str, db: Session = Depends(get_db)):
     Получить пользователя по username.
     """
     user = db.query(User).filter(User.username.ilike(username)).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с username '{username}' не найден"
         )
-    
+
     return user
 
 
@@ -264,13 +261,13 @@ def get_user_skills(user_id: int, db: Session = Depends(get_db)):
     Получить список навыков пользователя.
     """
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с ID {user_id} не найден"
         )
-    
+
     return [skill.name for skill in user.skills]
 
 
@@ -283,13 +280,13 @@ def get_user_achievements(user_id: int, db: Session = Depends(get_db)):
     Получить список всех достижений пользователя.
     """
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с ID {user_id} не найден"
         )
-    
+
     return user.achievements
 
 
@@ -302,7 +299,7 @@ def add_achievement(
     """
     POST /users/{user_id}/achievements
     Добавить достижение пользователю.
-    
+
     Параметры в теле запроса:
     - hackathon_name: str
     - place: Optional[int]
@@ -312,40 +309,47 @@ def add_achievement(
     - description: str
     """
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с ID {user_id} не найден"
         )
-    
+
     achievement = Achievement(
         user_id=user_id,
         **achievement_data
     )
-    
+
     db.add(achievement)
     db.commit()
     db.refresh(achievement)
-    
+
     return achievement
 
 
 # ==================== УДАЛЕНИЕ ====================
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)): # Добавляем current_user
     """
     DELETE /users/{user_id}
-    Удалить пользователя.
+    Удалить пользователя. (Требуется аутентификация, упрощённая проверка)
     """
+    # Простая проверка: можно удалить только себя
+    if current_user.id != user_id:
+         raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own account"
+        )
+
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Пользователь с ID {user_id} не найден"
         )
-    
+
     db.delete(user)
     db.commit()

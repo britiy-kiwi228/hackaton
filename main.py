@@ -1,9 +1,12 @@
+# main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
+from fastapi import Depends # Добавляем Depends
+from app.utils.security import get_current_user # Импортируем новую зависимость
+from app.models import User # Импортируем модель User для типизации
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO)
@@ -76,36 +79,16 @@ logger.info("✓ FastAPI приложение создано")
 
 # ==================== MIDDLEWARE ====================
 
-class AddUserToRequestMiddleware(BaseHTTPMiddleware):
-    """Middleware для добавления текущего пользователя в request.state"""
-    
-    async def dispatch(self, request: Request, call_next):
-        # Получаем user_id из query параметров (для тестирования)
-        # В реальности это будет из JWT токена
-        user_id = request.query_params.get("user_id")
-        
-        if user_id:
-            try:
-                user_id = int(user_id)
-                # Получаем пользователя из БД
-                from app.database import SessionLocal
-                db = SessionLocal()
-                user = db.query(User).filter(User.id == user_id).first()
-                db.close()
-                
-                if user:
-                    request.state.user = user
-                    logger.debug(f"✓ Пользователь {user.full_name} добавлен в request.state")
-            except Exception as e:
-                logger.warning(f"⚠️  Ошибка при получении пользователя: {e}")
-        
-        response = await call_next(request)
-        return response
-
-
-# Добавляем middleware
-app.add_middleware(AddUserToRequestMiddleware)
-logger.info("✓ Middleware добавлен")
+# УБИРАЕМ СТАРУЮ MIDDLEWARE
+# class AddUserToRequestMiddleware(BaseHTTPMiddleware):
+#     """Middleware для добавления текущего пользователя в request.state"""
+#     async def dispatch(self, request: Request, call_next):
+#         # ... старый код ...
+#         response = await call_next(request)
+#         return response
+#
+# app.add_middleware(AddUserToRequestMiddleware)
+# logger.info("✓ Middleware добавлен")
 
 # НАСТРОЙКА CORS (ОЧЕНЬ ВАЖНО!)
 # Это разрешает фронтенду стучаться к тебе
@@ -131,7 +114,7 @@ logger.info("✓ Роутеры подключены")
 
 try:
     from sqladmin import Admin, ModelView  # type: ignore
-    
+
     # Классы представления для админ-панели
     class UserAdmin(ModelView, model=User):
         """Админ-панель для пользователей"""
@@ -194,14 +177,14 @@ try:
 
     # Регистрируем админ-панель
     admin = Admin(app=app, engine=engine, title="Hackathon Admin Panel", base_url="/admin")
-    
+
     # Добавляем модели в админ-панель
     admin.add_model_view(UserAdmin)
     admin.add_model_view(HackathonAdmin)
     admin.add_model_view(TeamAdmin)
     admin.add_model_view(SkillAdmin)
     admin.add_model_view(AchievementAdmin)
-    
+
     logger.info("✓ Админ-панель настроена")
     admin_enabled = True
 
