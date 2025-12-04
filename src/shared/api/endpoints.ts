@@ -14,7 +14,6 @@ import {
   RecommendationRequest,
   HackathonResponse,
   TokenResponse,
-  TelegramAuthRequest,
 } from './types';
 
 // ==================== AUTH ENDPOINTS ====================
