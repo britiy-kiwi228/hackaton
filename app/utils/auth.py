@@ -1,48 +1,51 @@
-import hmac
-import hashlib
-from datetime import datetime, timedelta
-import time  # Добавил для time.time()
+"""
+Утилиты аутентификации (УСТАРЕВШИЙ МОДУЛЬ - использовать app.core.security)
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+Этот модуль оставлен для обратной совместимости.
+Новый код должен использовать app.core.security и app.dependencies.auth
+"""
+import warnings
+from datetime import timedelta
+from typing import Dict, Any, Optional
 
-from app.database import get_db
-from app.models import User
-from app.schemas import TelegramAuthRequest, TokenResponse
-from app.utils.auth import create_access_token, SECRET_KEY  # Если SECRET_KEY здесь, ок
+from app.core.security import create_access_token as new_create_access_token
+from app.core.security import decode_access_token as new_decode_access_token
+from app.core.config import settings
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+# Для обратной совместимости
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
-@router.post("/telegram/login", response_model=TokenResponse)
-def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
-    auth_data = data.auth_data.copy()
-    # 1. Проверка даты (теперь с time.time() для local consistency)
-    auth_date = int(auth_data.get("auth_date", "0"))
-    if abs(time.time() - auth_date) > 3600:
-        raise HTTPException(status_code=401, detail="Authentication data expired")
-    # 2. Подпись
-    received_hash = auth_data.pop("hash", "")
-    sorted_items = sorted([(k, v) for k, v in auth_data.items() if v is not None])
-    sorted_data = "\n".join([f"{k}={v}" for k, v in sorted_items])
-    secret_key = hashlib.sha256(SECRET_KEY.encode()).digest()
-    calculated_hash = hmac.new(secret_key, sorted_data.encode(), hashlib.sha256).hexdigest()
-    if calculated_hash != received_hash:
-        raise HTTPException(status_code=401, detail="Invalid Telegram signature")
-    # 3. Поиск/создание пользователя
-    tg_id = int(auth_data["id"])
-    user = db.query(User).filter_by(tg_id=tg_id).first()
-    if not user:
-        user = User(
-            tg_id=tg_id,
-            username=auth_data.get("username"),
-            full_name=f"{auth_data.get('first_name', '')} {auth_data.get('last_name', '')}".strip(),
-            bio="",
-            main_role=None,
-            ready_to_work=True
-        )
-        db.add(user)
-        db.commit()  # необходимо чтобы получить id
-        db.refresh(user)
-    # 4. Генерация токена
-    token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+
+def create_access_token(data: Dict[str, Any], expires_delta: timedelta = None) -> str:
+    """
+    [УСТАРЕЛО] Создать JWT токен (используйте app.core.security.create_access_token)
+    """
+    warnings.warn(
+        "app.utils.auth.create_access_token is deprecated, use app.core.security.create_access_token",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    subject = data.get("sub", "unknown")
+    extra_claims = {k: v for k, v in data.items() if k != "sub"}
+    return new_create_access_token(
+        subject=subject,
+        expires_delta=expires_delta,
+        extra_claims=extra_claims
+    )
+
+
+def verify_access_token(token: str) -> Optional[Dict[str, Any]]:
+    """
+    [УСТАРЕЛО] Проверить JWT токен (используйте app.core.security.decode_access_token)
+    """
+    warnings.warn(
+        "app.utils.auth.verify_access_token is deprecated, use app.core.security.decode_access_token",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    try:
+        return new_decode_access_token(token)
+    except Exception:
+        return None

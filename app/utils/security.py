@@ -1,3 +1,10 @@
+"""
+Утилиты безопасности (алиас для app.core.security)
+"""
+from app.dependencies.auth import get_current_user, get_current_admin_user
+
+
+__all__ = ["get_current_user", "get_current_admin_user"]
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session

@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app.models import Team, User, Hackathon, TeamRequest, RequestStatus
+from app.models import Team, User, Hackathon, JoinRequest, RequestStatus
 from app.schemas import (
     TeamCreate, TeamUpdate, TeamResponse, TeamListResponse,
     TeamRequestCreate, TeamRequestResponse
 )
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/teams", tags=["teams"])
 
@@ -189,10 +190,10 @@ def join_team_request(
         )
     
     # Проверяем, что заявка еще не подана
-    existing_request = db.query(TeamRequest).filter(
-        TeamRequest.user_id == user.id,
-        TeamRequest.team_id == team_id,
-        TeamRequest.status == RequestStatus.pending
+    existing_request = db.query(JoinRequest).filter(
+        JoinRequest.user_id == user.id,
+        JoinRequest.team_id == team_id,
+        JoinRequest.status == RequestStatus.pending
     ).first()
     
     if existing_request:
@@ -202,10 +203,9 @@ def join_team_request(
         )
     
     # Создаем заявку
-    team_request = TeamRequest(
+    team_request = JoinRequest(
         user_id=user.id,
         team_id=team_id,
-        is_invite=False,
         status=RequestStatus.pending
     )
     
@@ -253,10 +253,9 @@ def invite_to_team(
         )
     
     # Создаем приглашение
-    team_request = TeamRequest(
+    team_request = JoinRequest(
         user_id=invited_user.id,
         team_id=team_id,
-        is_invite=True,
         status=RequestStatus.pending
     )
     
@@ -275,7 +274,7 @@ def handle_team_request(
     db: Session = Depends(get_db)
 ):
     """Принять или отклонить заявку/приглашение"""
-    team_request = db.query(TeamRequest).filter(TeamRequest.id == request_id).first()
+    team_request = db.query(JoinRequest).filter(JoinRequest.id == request_id).first()
     if not team_request:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -290,21 +289,19 @@ def handle_team_request(
         )
     
     # Проверяем права на обработку заявки
-    if team_request.is_invite:
-        # Приглашение может принять только приглашенный пользователь
-        if team_request.user_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Вы можете обрабатывать только свои приглашения"
-            )
-    else:
-        # Заявку может принять только капитан команды
-        team = db.query(Team).filter(Team.id == team_request.team_id).first()
-        if team.captain_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Только капитан может обрабатывать заявки"
-            )
+    # Заявку может принять только капитан команды
+    team = db.query(Team).filter(Team.id == team_request.team_id).first()
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Команда не найдена"
+        )
+    
+    if team.captain_id != user.id and team_request.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Только капитан команды или сам пользователь может обрабатывать заявки"
+        )
     
     # Обновляем статус
     if action == "accept":
@@ -347,9 +344,9 @@ def get_team_requests(
             detail="Только капитан может просматривать заявки"
         )
     
-    requests = db.query(TeamRequest).filter(
-        TeamRequest.team_id == team_id,
-        TeamRequest.status == RequestStatus.pending
+    requests = db.query(JoinRequest).filter(
+        JoinRequest.team_id == team_id,
+        JoinRequest.status == RequestStatus.pending
     ).all()
     
     return requests

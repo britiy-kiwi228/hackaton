@@ -1,47 +1,137 @@
-import hmac
-import hashlib
-from datetime import datetime, timedelta
-
+"""
+Роутер аутентификации: Email/Password и Telegram
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
 from app.schemas import TelegramAuthRequest, TokenResponse
-from app.utils.auth import create_access_token, SECRET_KEY
+from app.core.security import create_access_token
+from app.core.config import settings
+from app.utils.telegram import verify_telegram_auth
+from app.dependencies.auth import authenticate_user, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
+@router.post("/login", response_model=TokenResponse)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """
+    Вход по Email/Password (для админки)
+    
+    OAuth2PasswordRequestForm ожидает поля:
+    - username (используется как email)
+    - password
+    """
+    user = await authenticate_user(
+        email=form_data.username,
+        password=form_data.password,
+        db=db
+    )
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Генерируем токен с дополнительной информацией о роли
+    token = create_access_token(
+        subject=user.id,
+        extra_claims={
+            "role": "admin" if user.is_admin else "user",
+            "auth_type": "email"
+        }
+    )
+    
+    return TokenResponse(access_token=token, token_type="bearer")
+
+
 @router.post("/telegram/login", response_model=TokenResponse)
 def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
-    auth_data = data.auth_data.copy()
-    # 1. Проверка даты
-    auth_date = int(auth_data.get("auth_date", "0"))
-    if abs(datetime.utcnow().timestamp() - auth_date) > 3600:
-        raise HTTPException(status_code=401, detail="Authentication data expired")
-    # 2. Подпись
-    received_hash = auth_data.pop("hash", "")
-    sorted_items = sorted([(k, v) for k, v in auth_data.items() if v is not None])
-    sorted_data = "\n".join([f"{k}={v}" for k, v in sorted_items])
-    secret_key = hashlib.sha256(SECRET_KEY.encode()).digest()
-    calculated_hash = hmac.new(secret_key, sorted_data.encode(), hashlib.sha256).hexdigest()
-    if calculated_hash != received_hash:
-        raise HTTPException(status_code=401, detail="Invalid Telegram signature")
-    # 3. Поиск/создание пользователя
+    """
+    Вход через Telegram Login Widget
+    
+    Принимает данные от Telegram, проверяет подпись и создаёт/находит пользователя
+    """
+    auth_data = dict(data.auth_data)
+    
+    # 1) Верификация Telegram данных
+    try:
+        verify_telegram_auth(auth_data, ttl_seconds=settings.TELEGRAM_AUTH_TTL_SECONDS)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # 2) Извлекаем данные пользователя
     tg_id = int(auth_data["id"])
-    user = db.query(User).filter_by(tg_id=tg_id).first()
+    
+    # 3) Поиск или создание пользователя
+    user = db.query(User).filter(User.tg_id == tg_id).first()
+    
     if not user:
+        # Создаём нового пользователя
+        first_name = auth_data.get("first_name", "")
+        last_name = auth_data.get("last_name", "")
+        full_name = f"{first_name} {last_name}".strip() or "Telegram User"
+        
         user = User(
             tg_id=tg_id,
             username=auth_data.get("username"),
-            full_name=f"{auth_data.get('first_name', '')} {auth_data.get('last_name', '')}".strip(),
+            tg_username=auth_data.get("username"),
+            full_name=full_name,
             bio="",
             main_role=None,
-            ready_to_work=True
+            ready_to_work=True,
+            avatar_url=auth_data.get("photo_url"),
         )
         db.add(user)
-        db.commit()  # необходимо чтобы получить id
+        db.commit()
         db.refresh(user)
-    # 4. Генерация токена
-    token = create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token)
+    else:
+        # Обновляем данные существующего пользователя
+        user.username = auth_data.get("username")
+        user.tg_username = auth_data.get("username")
+        user.avatar_url = auth_data.get("photo_url") or user.avatar_url
+        db.commit()
+        db.refresh(user)
+    
+    # 4) Генерация JWT токена
+    token = create_access_token(
+        subject=user.id,
+        extra_claims={
+            "auth_type": "telegram",
+            "tg_id": tg_id
+        }
+    )
+    
+    return TokenResponse(access_token=token, token_type="bearer")
+
+
+@router.get("/me")
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Получить информацию о текущем залогиненном пользователе
+    
+    Требует JWT токен в заголовке Authorization: Bearer <token>
+    """
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "tg_id": current_user.tg_id,
+        "username": current_user.username,
+        "full_name": current_user.full_name,
+        "is_admin": current_user.is_admin,
+        "created_at": current_user.created_at,
+    }

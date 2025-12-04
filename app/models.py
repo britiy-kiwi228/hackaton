@@ -125,7 +125,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    tg_id: Mapped[Optional[int]] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
 
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255))
@@ -142,10 +142,15 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    # ---- ДОБАВЛЕННЫЕ ПОЛЯ ----
+    # ---- ПОЛЯ ДЛЯ TELEGRAM AUTH ----
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     tg_username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     hide_tg_username: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    # ---- ПОЛЯ ДЛЯ EMAIL/PASSWORD AUTH (АДМИНКА) ----
+    email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True, index=True)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     # --------------------------
 
     skills: Mapped[List["Skill"]] = relationship(
@@ -180,22 +185,41 @@ class Team(Base):
     name: Mapped[str] = mapped_column(String(255), unique=True)
     description: Mapped[str] = mapped_column(Text, default="")
 
+    # Капитан команды
+    captain_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True
+    )
+    
+    # Альтернативное название (для совместимости)
     leader_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True
     )
 
     hackathon_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("hackathons.id", ondelete="CASCADE")
     )
+    
+    # Команда ищет участников
+    is_looking: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     members: Mapped[List["User"]] = relationship(
         "User",
         back_populates="team",
-        cascade="all"
+        cascade="all",
+        foreign_keys="[User.team_id]"
+    )
+    
+    captain: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[captain_id],
+        lazy="joined"
     )
 
     hackathon: Mapped["Hackathon"] = relationship(
