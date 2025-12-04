@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.schemas import TelegramAuthRequest, TokenResponse
-from app.core.security import create_access_token
+from app.schemas import TelegramAuthRequest, TokenResponse, UserCreateRequest, UserLoginRequest
+from app.core.security import create_access_token, get_password_hash
 from app.core.config import settings
 from app.utils.telegram import verify_telegram_auth
 from app.dependencies.auth import authenticate_user, get_current_user
@@ -111,6 +111,53 @@ def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
         extra_claims={
             "auth_type": "telegram",
             "tg_id": tg_id
+        }
+    )
+    
+    return TokenResponse(access_token=token, token_type="bearer")
+
+
+@router.post("/register", response_model=TokenResponse)
+async def register(
+    user_data: UserCreateRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Регистрация нового пользователя с email/password
+    
+    Создает нового пользователя и возвращает JWT токен
+    """
+    # Проверяем, что пользователь с таким email не существует
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists"
+        )
+    
+    # Хешируем пароль
+    password_hash = get_password_hash(user_data.password)
+    
+    # Создаем нового пользователя
+    user = User(
+        email=user_data.email,
+        password_hash=password_hash,
+        full_name=user_data.full_name,
+        bio="",
+        ready_to_work=True,
+        is_admin=False
+    )
+    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    # Генерируем токен
+    token = create_access_token(
+        subject=user.id,
+        extra_claims={
+            "role": "user",
+            "auth_type": "email"
         }
     )
     

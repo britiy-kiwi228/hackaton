@@ -40,6 +40,10 @@ def get_password_hash(password: str) -> str:
     Returns:
         str: хеш пароля для хранения в БД
     """
+    # bcrypt может обрабатывать только пароли до 72 байт
+    if len(password.encode('utf-8')) > 72:
+        raise ValueError("Password cannot be longer than 72 bytes")
+    
     return pwd_context.hash(password)
 
 

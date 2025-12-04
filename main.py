@@ -163,7 +163,7 @@ try:
         name_plural = "Teams"
         icon = "fa-solid fa-people-group"
         column_list = [Team.id, Team.name, Team.is_looking, Team.created_at]
-        column_searchable_list = [Team.name, Team.chat_link]
+        column_searchable_list = [Team.name]
         column_sortable_list = [Team.created_at, Team.name]
         column_details_exclude_list = [Team.members, Team.requests, Team.hackathon, Team.captain]
         page_size = 20
@@ -185,9 +185,9 @@ try:
         name = "Achievement"
         name_plural = "Achievements"
         icon = "fa-solid fa-trophy"
-        column_list = [Achievement.id, Achievement.hackathon_name, Achievement.place, Achievement.year, Achievement.created_at]
-        column_searchable_list = [Achievement.hackathon_name, Achievement.team_name]
-        column_sortable_list = [Achievement.year, Achievement.place, Achievement.created_at]
+        column_list = [Achievement.id, Achievement.name, Achievement.unlocked_at]
+        column_searchable_list = [Achievement.name]
+        column_sortable_list = [Achievement.unlocked_at, Achievement.name]
         column_details_exclude_list = [Achievement.user]
         page_size = 20
 

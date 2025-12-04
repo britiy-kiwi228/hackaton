@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from enum import Enum
@@ -336,6 +336,33 @@ class EnhancedRecommendation(BaseModel):
 class TelegramAuthRequest(BaseModel):
     """Запрос авторизации через Telegram Login Widget"""
     auth_data: Dict[str, Any]
+
+
+# ==================== EMAIL/PASSWORD AUTH ====================
+
+class UserCreateRequest(BaseModel):
+    """Создание пользователя с email/password"""
+    email: EmailStr
+    password: str
+    full_name: str
+    
+    @validator('password')
+    def validate_password_length(cls, v):
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('Password cannot be longer than 72 bytes')
+        return v
+
+
+class UserLoginRequest(BaseModel):
+    """Вход по email/password"""
+    email: EmailStr
+    password: str
+    
+    @validator('password')
+    def validate_password_length(cls, v):
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('Password cannot be longer than 72 bytes')
+        return v
 
 
 # ==================== TOKEN ====================

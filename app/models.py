@@ -70,6 +70,7 @@ class Hackathon(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255), index=True)
     description: Mapped[str] = mapped_column(Text)
+    location: Mapped[str] = mapped_column(String(255), index=True)
     start_date: Mapped[datetime] = mapped_column(DateTime, index=True)
     end_date: Mapped[datetime] = mapped_column(DateTime, index=True)
     registration_deadline: Mapped[datetime] = mapped_column(DateTime, index=True)

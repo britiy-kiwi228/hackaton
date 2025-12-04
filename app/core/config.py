@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """Настройки приложения"""
     
     # JWT
-    JWT_SECRET_KEY: str = "hackathon_secret_key_2024_super_secure_change_in_production"
+    JWT_SECRET_KEY: str = "hackathon_secret_key_2024_super_secure_change_in_production_min_32_chars_required"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 часа
     

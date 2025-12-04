@@ -9,8 +9,8 @@ sqlalchemy==2.0.25
 # Authentication & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.1.2
-cryptography==41.0.7
+bcrypt==4.2.0
+cryptography==42.0.0
 
 # Data validation
 pydantic==2.5.3
@@ -22,5 +22,3 @@ sqladmin==0.16.0
 # Testing
 httpx==0.25.2
 pytest==7.4.3
-python-jose[cryptography]
-passlib[bcrypt]
