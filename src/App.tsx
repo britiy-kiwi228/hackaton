@@ -1,8 +1,27 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '@/context';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import AuthPage from '@/pages/auth';
+import DashboardPage from '@/pages/participant/dashboard';
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold text-center pt-20">Hackathon Platform</h1>
-      <p className="text-center mt-4 text-gray-600">Инициализация приложения...</p>
-    </div>
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
   );
 }

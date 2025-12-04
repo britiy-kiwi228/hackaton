@@ -13,21 +13,31 @@ export function useAuth() {
   const [state, setState] = useState<AuthState>({
     token: localStorage.getItem('token'),
     user: null,
-    loading: false,
+    loading: true,
     error: null,
   });
 
   const loadUser = useCallback(async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setState((prev) => ({ ...prev, loading: false }));
+      return;
+    }
 
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const user = await api.users.getMe();
       setState((prev) => ({ ...prev, user, loading: false }));
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to load user';
-      setState((prev) => ({ ...prev, error: errorMsg, loading: false }));
+      // Если ошибка 401, очищаем token
+      if ((error as any)?.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setState((prev) => ({ ...prev, token: null, user: null, loading: false }));
+      } else {
+        const errorMsg = error instanceof Error ? error.message : 'Failed to load user';
+        setState((prev) => ({ ...prev, error: errorMsg, loading: false }));
+      }
     }
   }, []);
 
@@ -66,6 +76,7 @@ export function useAuth() {
     });
   }, []);
 
+  // Загружаем пользователя при монтировании
   useEffect(() => {
     loadUser();
   }, [loadUser]);
