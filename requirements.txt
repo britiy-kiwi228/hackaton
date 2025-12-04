@@ -19,6 +19,9 @@ pydantic-settings==2.1.0
 # Admin panel
 sqladmin==0.16.0
 
+# Database migrations
+alembic==1.17.2
+
 # Testing
 httpx==0.25.2
 pytest==7.4.3
