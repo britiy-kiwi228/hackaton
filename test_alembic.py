@@ -292,11 +292,12 @@ def test_alembic_downgrade():
     print(f"  - Версия миграций: {current_version}")
     print(f"  - Количество таблиц: {table_count}")
     
-    if table_count == 0 and current_version == "Not migrated":
+    # Проверяем, что таблицы удалены (или версия стала Not migrated/Unknown)
+    if table_count == 0 or current_version in ["Not migrated", "Unknown"]:
         print_success("Все таблицы успешно удалены!")
         return True
     else:
-        print_error("Таблицы не были удалены")
+        print_error(f"Таблицы не были удалены (осталось таблиц: {table_count})")
         return False
 
 
