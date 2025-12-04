@@ -182,6 +182,20 @@ class User(Base):
         foreign_keys="User.team_id"
     )
 
+    # Relationship для запросов, отправленных пользователем
+    requests_sent: Mapped[List["Request"]] = relationship(
+        "Request",
+        foreign_keys="Request.sender_id",
+        back_populates="sender"
+    )
+
+    # Relationship для команд, которыми руководит пользователь
+    teams_led: Mapped[List["Team"]] = relationship(
+        "Team",
+        foreign_keys="Team.captain_id",
+        back_populates="captain"
+    )
+
 
 class Team(Base):
     __tablename__ = "teams"
