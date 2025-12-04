@@ -15,7 +15,7 @@ from app.schemas import (
     TeamListResponse,
     EnhancedRecommendation
 )
-from app.dependencies.auth import get_current_user  # Импортируем правильную зависимость
+from app.core.auth import get_current_user  # Централизованная авторизация
 
 router = APIRouter(
     prefix="/recommendations",

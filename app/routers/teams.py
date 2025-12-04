@@ -7,26 +7,23 @@ from app.schemas import (
     TeamCreate, TeamUpdate, TeamResponse, TeamListResponse,
     TeamRequestCreate, TeamRequestResponse
 )
-from app.dependencies.auth import get_current_user
+from app.core.auth import get_current_user  # Импорт из core.auth
 
 router = APIRouter(prefix="/teams", tags=["teams"])
 
 
 @router.post("/", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
-def create_team(
+async def create_team(
     team_data: TeamCreate,
-    captain_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Создать новую команду"""
-    # Проверяем, что капитан существует
-    captain = db.query(User).filter(User.tg_id == captain_tg_id).first()
-    if not captain:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Капитан команды не найден"
-        )
+    """
+    Создать новую команду
     
+    Текущий пользователь автоматически становится капитаном команды.
+    Требуется JWT авторизация (Bearer token в заголовке Authorization).
+    """
     # Проверяем, что хакатон существует
     hackathon = db.query(Hackathon).filter(Hackathon.id == team_data.hackathon_id).first()
     if not hackathon:
@@ -35,10 +32,10 @@ def create_team(
             detail="Хакатон не найден"
         )
     
-    # Проверяем, что капитан еще не в команде этого хакатона
+    # Проверяем, что пользователь еще не капитан команды в этом хакатоне
     existing_team = db.query(Team).filter(
         Team.hackathon_id == team_data.hackathon_id,
-        Team.captain_id == captain.id
+        Team.captain_id == current_user.id
     ).first()
     if existing_team:
         raise HTTPException(
@@ -46,12 +43,12 @@ def create_team(
             detail="Вы уже являетесь капитаном команды в этом хакатоне"
         )
     
-    # Создаем команду
+    # Создаем команду с current_user как капитаном
     team = Team(
         name=team_data.name,
         description=team_data.description or "",
         hackathon_id=team_data.hackathon_id,
-        captain_id=captain.id,
+        captain_id=current_user.id,  # ID из JWT токена
         is_looking=True
     )
     
@@ -60,7 +57,7 @@ def create_team(
     db.refresh(team)
     
     # Добавляем капитана в команду
-    captain.team_id = team.id
+    current_user.team_id = team.id
     db.commit()
     db.refresh(team)
     
@@ -100,13 +97,18 @@ def get_team(team_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{team_id}", response_model=TeamResponse)
-def update_team(
+async def update_team(
     team_id: int,
     team_update: TeamUpdate,
-    captain_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Обновить информацию о команде (только капитан)"""
+    """
+    Обновить информацию о команде
+    
+    Только капитан команды может редактировать её данные.
+    Требуется JWT авторизация.
+    """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
@@ -114,9 +116,8 @@ def update_team(
             detail="Команда не найдена"
         )
     
-    # Проверяем, что пользователь - капитан команды
-    captain = db.query(User).filter(User.tg_id == captain_tg_id).first()
-    if not captain or team.captain_id != captain.id:
+    # Проверяем, что текущий пользователь - капитан команды
+    if team.captain_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только капитан может редактировать команду"
@@ -133,12 +134,18 @@ def update_team(
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_team(
+async def delete_team(
     team_id: int,
-    captain_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Удалить команду (только капитан)"""
+    """
+    Удалить команду
+    
+    Только капитан команды может удалить её.
+    При удалении все участники автоматически покидают команду.
+    Требуется JWT авторизация.
+    """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
@@ -146,9 +153,8 @@ def delete_team(
             detail="Команда не найдена"
         )
     
-    # Проверяем, что пользователь - капитан команды
-    captain = db.query(User).filter(User.tg_id == captain_tg_id).first()
-    if not captain or team.captain_id != captain.id:
+    # Проверяем, что текущий пользователь - капитан команды
+    if team.captain_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только капитан может удалить команду"
@@ -162,12 +168,17 @@ def delete_team(
 
 
 @router.post("/{team_id}/join", response_model=TeamRequestResponse)
-def join_team_request(
+async def join_team_request(
     team_id: int,
-    user_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Подать заявку на вступление в команду"""
+    """
+    Подать заявку на вступление в команду
+    
+    Текущий пользователь (из JWT токена) подает заявку в указанную команду.
+    Требуется JWT авторизация.
+    """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
@@ -175,15 +186,8 @@ def join_team_request(
             detail="Команда не найдена"
         )
     
-    user = db.query(User).filter(User.tg_id == user_tg_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден"
-        )
-    
     # Проверяем, что пользователь еще не в команде
-    if user.team_id:
+    if current_user.team_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Вы уже состоите в команде"
@@ -191,7 +195,7 @@ def join_team_request(
     
     # Проверяем, что заявка еще не подана
     existing_request = db.query(JoinRequest).filter(
-        JoinRequest.user_id == user.id,
+        JoinRequest.user_id == current_user.id,
         JoinRequest.team_id == team_id,
         JoinRequest.status == RequestStatus.pending
     ).first()
@@ -204,7 +208,7 @@ def join_team_request(
     
     # Создаем заявку
     team_request = JoinRequest(
-        user_id=user.id,
+        user_id=current_user.id,
         team_id=team_id,
         status=RequestStatus.pending
     )
@@ -217,13 +221,18 @@ def join_team_request(
 
 
 @router.post("/{team_id}/invite", response_model=TeamRequestResponse)
-def invite_to_team(
+async def invite_to_team(
     team_id: int,
     invited_user_id: int,
-    captain_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Пригласить пользователя в команду (только капитан)"""
+    """
+    Пригласить пользователя в команду
+    
+    Только капитан команды может отправлять приглашения.
+    Требуется JWT авторизация.
+    """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
@@ -231,8 +240,8 @@ def invite_to_team(
             detail="Команда не найдена"
         )
     
-    captain = db.query(User).filter(User.tg_id == captain_tg_id).first()
-    if not captain or team.captain_id != captain.id:
+    # Проверяем, что текущий пользователь - капитан команды
+    if team.captain_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только капитан может приглашать в команду"
@@ -267,13 +276,25 @@ def invite_to_team(
 
 
 @router.put("/requests/{request_id}", response_model=TeamRequestResponse)
-def handle_team_request(
+async def handle_team_request(
     request_id: int,
     action: str,  # "accept" или "decline"
-    user_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Принять или отклонить заявку/приглашение"""
+    """
+    Принять или отклонить заявку/приглашение
+    
+    Капитан команды может принимать/отклонять заявки от пользователей.
+    Пользователь может отклонить приглашение в команду.
+    Требуется JWT авторизация.
+    
+    Args:
+        request_id: ID заявки
+        action: "accept" или "decline"
+        current_user: текущий пользователь из JWT
+        db: сессия БД
+    """
     team_request = db.query(JoinRequest).filter(JoinRequest.id == request_id).first()
     if not team_request:
         raise HTTPException(
@@ -281,15 +302,7 @@ def handle_team_request(
             detail="Заявка не найдена"
         )
     
-    user = db.query(User).filter(User.tg_id == user_tg_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден"
-        )
-    
     # Проверяем права на обработку заявки
-    # Заявку может принять только капитан команды
     team = db.query(Team).filter(Team.id == team_request.team_id).first()
     if not team:
         raise HTTPException(
@@ -297,7 +310,8 @@ def handle_team_request(
             detail="Команда не найдена"
         )
     
-    if team.captain_id != user.id and team_request.user_id != user.id:
+    # Капитан команды или сам пользователь могут обрабатывать заявку
+    if team.captain_id != current_user.id and team_request.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только капитан команды или сам пользователь может обрабатывать заявки"
@@ -324,12 +338,17 @@ def handle_team_request(
 
 
 @router.get("/{team_id}/requests", response_model=List[TeamRequestResponse])
-def get_team_requests(
+async def get_team_requests(
     team_id: int,
-    captain_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Получить список заявок в команду (только капитан)"""
+    """
+    Получить список заявок в команду
+    
+    Только капитан команды может просматривать заявки.
+    Требуется JWT авторизация.
+    """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
@@ -337,8 +356,8 @@ def get_team_requests(
             detail="Команда не найдена"
         )
     
-    captain = db.query(User).filter(User.tg_id == captain_tg_id).first()
-    if not captain or team.captain_id != captain.id:
+    # Проверяем, что текущий пользователь - капитан команды
+    if team.captain_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только капитан может просматривать заявки"
@@ -353,31 +372,36 @@ def get_team_requests(
 
 
 @router.post("/{team_id}/leave", status_code=status.HTTP_204_NO_CONTENT)
-def leave_team(
+async def leave_team(
     team_id: int,
-    user_tg_id: int,
+    current_user: User = Depends(get_current_user),  # JWT авторизация
     db: Session = Depends(get_db)
 ):
-    """Покинуть команду"""
-    user = db.query(User).filter(User.tg_id == user_tg_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден"
-        )
+    """
+    Покинуть команду
     
-    if user.team_id != team_id:
+    Текущий пользователь покидает команду.
+    Капитан не может покинуть команду (нужно удалить команду или передать капитанство).
+    Требуется JWT авторизация.
+    """
+    if current_user.team_id != team_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Вы не состоите в этой команде"
         )
     
     team = db.query(Team).filter(Team.id == team_id).first()
-    if team.captain_id == user.id:
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Команда не найдена"
+        )
+    
+    if team.captain_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Капитан не может покинуть команду. Удалите команду или передайте капитанство."
         )
     
-    user.team_id = None
+    current_user.team_id = None
     db.commit()
