@@ -9,7 +9,6 @@ import {
   TeamUpdate,
   RequestResponse,
   RequestCreate,
-  RequestUpdate,
   RecommendationResponse,
   RecommendationRequest,
   HackathonResponse,

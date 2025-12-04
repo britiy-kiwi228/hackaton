@@ -1,6 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
 const client: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -11,22 +11,22 @@ const client: AxiosInstance = axios.create({
 
 // Request interceptor: Add token to Authorization header
 client.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor: Handle token expiration
 client.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: any) => response,
+  (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Clear token and redirect to login on 401
       localStorage.removeItem('token');
