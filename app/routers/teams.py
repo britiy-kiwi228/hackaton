@@ -67,7 +67,7 @@ def create_team(
     return team
 
 
-@router.get("/", response_model=List[TeamListResponse])
+@router.get("/", response_model=List[TeamResponse])
 def get_teams(
     skip: int = 0,
     limit: int = 100,

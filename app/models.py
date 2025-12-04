@@ -32,6 +32,11 @@ class RequestStatus(PyEnum):
     canceled = "canceled"
 
 
+class RequestType(PyEnum):
+    join_team = "join_team"
+    collaborate = "collaborate"
+
+
 user_skills = Table(
     "user_skills",
     Base.metadata,
@@ -232,6 +237,46 @@ class Team(Base):
         back_populates="team",
         cascade="all, delete-orphan"
     )
+
+
+class Request(Base):
+    __tablename__ = "requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    sender_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
+    receiver_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True
+    )
+    team_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("teams.id", ondelete="CASCADE"),
+        nullable=True
+    )
+    hackathon_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("hackathons.id", ondelete="CASCADE")
+    )
+
+    request_type: Mapped[RequestType] = mapped_column(
+        Enum(RequestType)
+    )
+    status: Mapped[RequestStatus] = mapped_column(
+        Enum(RequestStatus),
+        default=RequestStatus.pending
+    )
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    sender: Mapped["User"] = relationship("User", foreign_keys=[sender_id])
+    receiver: Mapped[Optional["User"]] = relationship("User", foreign_keys=[receiver_id])
+    team: Mapped[Optional["Team"]] = relationship("Team")
+    hackathon: Mapped["Hackathon"] = relationship("Hackathon")
 
 
 class JoinRequest(Base):

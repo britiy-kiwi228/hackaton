@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from enum import Enum
 
 # Импортируем Enum Role из моделей (для использования в схемах)
@@ -30,7 +30,7 @@ class SkillResponse(BaseModel):
 class AchievementBase(BaseModel):
     name: str
     description: str
-    icon_url: Optional[str] = None  # Добавлено
+    icon_url: Optional[str] = None
 
 
 class AchievementResponse(AchievementBase):
@@ -75,11 +75,11 @@ class UserUpdate(BaseModel):
     ready_to_work: Optional[bool] = None
     team_id: Optional[int] = None
     skills: Optional[List[str]] = None
-    
-    # Новые поля
     avatar_url: Optional[str] = None
     tg_username: Optional[str] = None
     hide_tg_username: Optional[bool] = None
+
+
 class UserLogin(BaseModel):
     """Авторизация через Telegram"""
     tg_id: int
@@ -90,16 +90,14 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     """Полный профиль пользователя"""
     id: int
-    tg_id: int
-    username: Optional[str]
+    tg_id: Optional[int] = None
+    username: Optional[str] = None
     full_name: str
     bio: str
-    main_role: Optional[str]
+    main_role: Optional[str] = None
     ready_to_work: bool
-    team_id: Optional[int]
+    team_id: Optional[int] = None
     created_at: datetime
-
-    # NEW
     avatar_url: Optional[str] = None
     tg_username: Optional[str] = None
 
@@ -115,73 +113,6 @@ class UserListResponse(BaseModel):
     users: List[UserResponse]
 
 
-# ==================== RECOMMENDATIONS ====================
-
-class UserWithScore(BaseModel):
-    user: UserResponse
-    score: float
-
-
-class TeamWithScore(BaseModel):
-    team: 'TeamResponse'
-    score: float
-
-
-class RecommendationResponse(BaseModel):
-    """Рекомендации для пользователя"""
-    recommended_users: List[UserWithScore]
-    recommended_teams: List[TeamWithScore]
-# ==================== TEAM СХЕМЫ ====================
-
-class TeamBase(BaseModel):
-    name: str
-    description: Optional[str] = ""
-
-
-class TeamCreate(BaseModel):
-    name: str
-    description: Optional[str] = ""
-    hackathon_id: int
-
-
-class TeamUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-
-
-class TeamResponse(BaseModel):
-    id: int
-    name: str
-    description: str
-    leader_id: int
-    hackathon_id: int
-    created_at: datetime
-
-    members: List[UserResponse] = []
-    requests: List['JoinRequestResponse'] = []
-
-    class Config:
-        from_attributes = True
-
-
-# ==================== JOIN REQUESTS ====================
-
-class JoinRequestBase(BaseModel):
-    user_id: int
-    team_id: int
-
-
-class JoinRequestResponse(BaseModel):
-    id: int
-    team_id: int
-    user_id: int
-    status: str
-    created_at: datetime
-
-    user: Optional[UserResponse] = None
-
-    class Config:
-        from_attributes = True
 # ==================== HACKATHON СХЕМЫ ====================
 
 class HackathonBase(BaseModel):
@@ -215,6 +146,105 @@ class HackathonResponse(HackathonBase):
 
 class HackathonListResponse(BaseModel):
     hackathons: List[HackathonResponse]
+
+
+# ==================== TEAM СХЕМЫ ====================
+
+class TeamBase(BaseModel):
+    name: str
+    description: Optional[str] = ""
+
+
+class TeamCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    hackathon_id: int
+
+
+class TeamUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_looking: Optional[bool] = None
+
+
+# Forward reference для циклических зависимостей
+class TeamResponse(BaseModel):
+    id: int
+    name: str
+    description: str
+    captain_id: int
+    hackathon_id: int
+    is_looking: bool = True
+    created_at: datetime
+
+    members: List[UserResponse] = []
+    requests: List['JoinRequestResponse'] = []
+
+    class Config:
+        from_attributes = True
+
+
+class TeamListResponse(BaseModel):
+    """Упрощённый список команд (без вложенных объектов)"""
+    id: int
+    name: str
+    description: str
+    captain_id: int
+    hackathon_id: int
+    is_looking: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ==================== JOIN REQUESTS ====================
+
+class JoinRequestBase(BaseModel):
+    user_id: int
+    team_id: int
+
+
+class JoinRequestCreate(BaseModel):
+    """Создание запроса на вступление"""
+    team_id: int
+
+
+class JoinRequestResponse(BaseModel):
+    id: int
+    team_id: int
+    user_id: int
+    status: str
+    created_at: datetime
+    user: Optional[UserResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Алиасы для обратной совместимости
+TeamRequestCreate = JoinRequestCreate
+TeamRequestResponse = JoinRequestResponse
+
+
+# ==================== RECOMMENDATIONS ====================
+
+class UserWithScore(BaseModel):
+    user: UserResponse
+    score: float
+
+
+class TeamWithScore(BaseModel):
+    team: TeamResponse
+    score: float
+
+
+class RecommendationResponse(BaseModel):
+    """Рекомендации для пользователя"""
+    recommended_users: List[UserWithScore]
+    recommended_teams: List[TeamWithScore]
+
+
 # ==================== ФИЛЬТРЫ ДЛЯ ПОИСКА ====================
 
 class UserFilter(BaseModel):
@@ -229,21 +259,23 @@ class TeamFilter(BaseModel):
     hackathon_id: Optional[int] = None
     roles_needed: Optional[List[RoleEnum]] = None
     require_free_slots: Optional[bool] = None
+
+
 # ==================== РАСШИРЕННЫЕ РЕКОМЕНДАЦИИ ====================
 
 class EnhancedRecommendation(BaseModel):
     """Расширенные рекомендации (для будущего AI алгоритма)"""
-    user_matches: Dict[int, float]       # user_id -> вес совпадения
-    team_matches: Dict[int, float]       # team_id -> вес совпадения
-    common_skills: Dict[int, List[str]]  # user_id -> пересечение навыков
-    reasons: Dict[str, float]            # объяснения рекомендаций
+    user_matches: Dict[int, float]
+    team_matches: Dict[int, float]
+    common_skills: Dict[int, List[str]]
+    reasons: Dict[str, float]
 
 
 # ==================== TELEGRAM AUTH ====================
 
 class TelegramAuthRequest(BaseModel):
     """Запрос авторизации через Telegram Login Widget"""
-    auth_data: Dict[str, str]
+    auth_data: Dict[str, Any]
 
 
 # ==================== TOKEN ====================
@@ -251,6 +283,10 @@ class TelegramAuthRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# ==================== CALENDAR & NOTIFICATIONS ====================
+
 class CalendarResponse(BaseModel):
     """Ответ для календаря хакатонов"""
     upcoming: List[HackathonResponse]
@@ -262,3 +298,8 @@ class NotificationResponse(BaseModel):
     has_notification: bool
     message: Optional[str] = None
     hackathon_id: Optional[int] = None
+
+
+# Обновляем forward references
+TeamResponse.model_rebuild()
+JoinRequestResponse.model_rebuild()
