@@ -198,6 +198,56 @@ class TeamListResponse(BaseModel):
         from_attributes = True
 
 
+# ==================== REQUEST ENUMS ====================
+
+class RequestStatusEnum(str, Enum):
+    """Статусы запросов"""
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
+    canceled = "canceled"
+
+
+class RequestTypeEnum(str, Enum):
+    """Типы запросов"""
+    join_team = "join_team"
+    collaborate = "collaborate"
+
+
+# ==================== REQUESTS ====================
+
+class RequestCreate(BaseModel):
+    """Создание запроса"""
+    receiver_id: Optional[int] = None
+    team_id: Optional[int] = None
+    hackathon_id: int
+    request_type: RequestTypeEnum
+
+
+class RequestUpdate(BaseModel):
+    """Обновление запроса"""
+    status: RequestStatusEnum
+
+
+class RequestResponse(BaseModel):
+    """Ответ с данными запроса"""
+    id: int
+    sender_id: int
+    receiver_id: Optional[int] = None
+    team_id: Optional[int] = None
+    hackathon_id: int
+    request_type: str
+    status: str
+    created_at: datetime
+    sender: Optional[UserResponse] = None
+    receiver: Optional[UserResponse] = None
+    team: Optional['TeamResponse'] = None
+    hackathon: Optional['HackathonResponse'] = None
+
+    class Config:
+        from_attributes = True
+
+
 # ==================== JOIN REQUESTS ====================
 
 class JoinRequestBase(BaseModel):
@@ -228,6 +278,16 @@ TeamRequestResponse = JoinRequestResponse
 
 
 # ==================== RECOMMENDATIONS ====================
+
+class RecommendationRequest(BaseModel):
+    """Запрос рекомендаций"""
+    hackathon_id: int
+    for_what: str  # "team" или "user"
+    preferred_roles: Optional[List[RoleEnum]] = None
+    preferred_skills: Optional[List[str]] = None
+    exclude_team_ids: Optional[List[int]] = None
+    exclude_user_ids: Optional[List[int]] = None
+
 
 class UserWithScore(BaseModel):
     user: UserResponse

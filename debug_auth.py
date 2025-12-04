@@ -54,7 +54,7 @@ print("-" * 80)
 
 # Создаём тестового админа
 TEST_ADMIN_EMAIL = "admin@hackathon.test"
-TEST_ADMIN_PASSWORD = "admin123"
+TEST_ADMIN_PASSWORD = "admin123"[:72]  # Обрезаем до 72 байт для bcrypt
 
 db: Session = SessionLocal()
 
