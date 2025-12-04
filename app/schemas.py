@@ -35,6 +35,7 @@ class AchievementBase(BaseModel):
 
 class AchievementResponse(AchievementBase):
     id: int
+    user_id: int
     unlocked_at: datetime
     
     class Config:
@@ -52,6 +53,8 @@ class HackathonParticipationBase(BaseModel):
 
 class HackathonParticipationResponse(HackathonParticipationBase):
     id: int
+    users: List['UserResponse'] = []
+    hackathon: Optional['HackathonResponse'] = None
     
     class Config:
         from_attributes = True
@@ -94,12 +97,16 @@ class UserResponse(BaseModel):
     username: Optional[str] = None
     full_name: str
     bio: str
-    main_role: Optional[str] = None
+    main_role: Optional[RoleEnum] = None
     ready_to_work: bool
     team_id: Optional[int] = None
     created_at: datetime
     avatar_url: Optional[str] = None
     tg_username: Optional[str] = None
+    hide_tg_username: Optional[bool] = None
+    # Поля для админки (опциональные для безопасности)
+    email: Optional[str] = None
+    is_admin: Optional[bool] = None
 
     skills: List[SkillResponse] = []
     achievements: List[AchievementResponse] = []
@@ -118,6 +125,7 @@ class UserListResponse(BaseModel):
 class HackathonBase(BaseModel):
     title: str
     description: str
+    location: Optional[str] = None
     start_date: datetime
     end_date: datetime
     registration_deadline: datetime
@@ -130,6 +138,7 @@ class HackathonCreate(HackathonBase):
 class HackathonUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    location: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     registration_deadline: Optional[datetime] = None
@@ -173,12 +182,14 @@ class TeamResponse(BaseModel):
     name: str
     description: str
     captain_id: int
+    leader_id: Optional[int] = None  # Альтернативное название (для совместимости)
     hackathon_id: int
     is_looking: bool = True
     created_at: datetime
 
     members: List[UserResponse] = []
     requests: List['JoinRequestResponse'] = []
+    captain: Optional['UserResponse'] = None  # Объект капитана команды
 
     class Config:
         from_attributes = True
@@ -190,6 +201,7 @@ class TeamListResponse(BaseModel):
     name: str
     description: str
     captain_id: int
+    leader_id: Optional[int] = None  # Альтернативное название (для совместимости)
     hackathon_id: int
     is_looking: bool
     created_at: datetime
@@ -236,8 +248,8 @@ class RequestResponse(BaseModel):
     receiver_id: Optional[int] = None
     team_id: Optional[int] = None
     hackathon_id: int
-    request_type: str
-    status: str
+    request_type: RequestTypeEnum
+    status: RequestStatusEnum
     created_at: datetime
     sender: Optional[UserResponse] = None
     receiver: Optional[UserResponse] = None
@@ -264,7 +276,7 @@ class JoinRequestResponse(BaseModel):
     id: int
     team_id: int
     user_id: int
-    status: str
+    status: RequestStatusEnum
     created_at: datetime
     user: Optional[UserResponse] = None
 
@@ -390,3 +402,4 @@ class NotificationResponse(BaseModel):
 # Обновляем forward references
 TeamResponse.model_rebuild()
 JoinRequestResponse.model_rebuild()
+HackathonParticipationResponse.model_rebuild()
