@@ -2,9 +2,10 @@ interface AlertProps {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   onClose?: () => void;
+  className?: string;
 }
 
-export default function Alert({ type, message, onClose }: AlertProps) {
+export default function Alert({ type, message, onClose, className = '' }: AlertProps) {
   const typeStyles = {
     success: 'bg-green-100 border-l-4 border-green-500 text-green-700',
     error: 'bg-red-100 border-l-4 border-red-500 text-red-700',
@@ -13,7 +14,7 @@ export default function Alert({ type, message, onClose }: AlertProps) {
   };
 
   return (
-    <div className={`p-4 rounded-r flex justify-between items-center ${typeStyles[type]}`}>
+    <div className={`p-4 rounded-r flex justify-between items-center ${typeStyles[type]} ${className}`}>
       <span>{message}</span>
       {onClose && (
         <button

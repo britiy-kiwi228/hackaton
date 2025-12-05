@@ -2,7 +2,7 @@
 Модуль безопасности: хеширование паролей и JWT токены
 """
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, Union
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -48,7 +48,7 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-    subject: str | int,
+    subject: Union[str, int],
     expires_delta: Optional[timedelta] = None,
     extra_claims: Optional[Dict[str, Any]] = None,
 ) -> str:

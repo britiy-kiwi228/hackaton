@@ -4,10 +4,18 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export default function Modal({ isOpen, onClose, title, children, actions }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, actions, size = 'md' }: ModalProps) {
   if (!isOpen) return null;
+
+  const sizeStyles = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+  };
 
   return (
     <div
@@ -15,7 +23,7 @@ export default function Modal({ isOpen, onClose, title, children, actions }: Mod
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl max-w-md w-full"
+        className={`bg-white rounded-lg shadow-xl ${sizeStyles[size]} w-full`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (

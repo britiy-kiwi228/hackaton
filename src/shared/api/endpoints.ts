@@ -44,6 +44,7 @@ export const usersAPI = {
     limit?: number;
     role?: string;
     hackathon_id?: number;
+    team_id?: number;
   }): Promise<UserListResponse[]> => {
     const response = await client.get<UserListResponse[]>('/users', { params });
     return response.data;
@@ -76,6 +77,11 @@ export const teamsAPI = {
   },
 
   getOne: async (teamId: number): Promise<TeamResponse> => {
+    const response = await client.get<TeamResponse>(`/teams/${teamId}`);
+    return response.data;
+  },
+
+  getById: async (teamId: number): Promise<TeamResponse> => {
     const response = await client.get<TeamResponse>(`/teams/${teamId}`);
     return response.data;
   },

@@ -56,6 +56,7 @@ export function useHackathons() {
     loading: state.loading,
     error: state.error,
     getHackathons,
+    fetchHackathons: getHackathons, // Alias for backward compatibility
     getHackathon,
     setCurrent,
   };

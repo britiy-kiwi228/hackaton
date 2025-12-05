@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import api from '@/shared/api';
-import type { UserResponse, UserUpdate } from '@/shared/api';
+import type { UserResponse, UserUpdate, UserListResponse } from '@/shared/api';
 
 interface UserState {
   user: UserResponse | null;
+  users: UserListResponse[];
   loading: boolean;
   error: string | null;
 }
@@ -11,6 +12,7 @@ interface UserState {
 export function useUser() {
   const [state, setState] = useState<UserState>({
     user: null,
+    users: [],
     loading: false,
     error: null,
   });
@@ -67,12 +69,33 @@ export function useUser() {
     }
   }, []);
 
+  const fetchUsers = useCallback(async (params?: {
+    skip?: number;
+    limit?: number;
+    role?: string;
+    hackathon_id?: number;
+  }) => {
+    try {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const users = await api.users.listUsers(params);
+      setState((prev) => ({ ...prev, users, loading: false }));
+      return users;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to load users';
+      setState((prev) => ({ ...prev, error: errorMsg, loading: false }));
+      throw error;
+    }
+  }, []);
+
   return {
     user: state.user,
+    users: state.users,
     loading: state.loading,
     error: state.error,
     getUser,
+    fetchUsers,
     updateProfile,
+    updateUser: updateProfile, // Alias for backward compatibility
     addSkill,
     removeSkill,
   };
