@@ -11,7 +11,7 @@ type TeamTab = 'all' | 'looking' | 'full';
 export default function OrganizerTeams() {
   const navigate = useNavigate();
   const { hackathons, loading: hackatonsLoading } = useHackathons();
-  
+
   const [activeTab, setActiveTab] = useState<TeamTab>('all');
   const [selectedHackathon, setSelectedHackathon] = useState<number | null>(null);
   const [teams, setTeams] = useState<TeamListResponse[]>([]);
@@ -43,7 +43,7 @@ export default function OrganizerTeams() {
 
   const loadTeams = async () => {
     if (!selectedHackathon) return;
-    
+
     try {
       setLoading(true);
       const response = await api.teams.getList({ hackathon_id: selectedHackathon });
@@ -72,7 +72,7 @@ export default function OrganizerTeams() {
     // Фильтр по поиску
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
+      filtered = filtered.filter(t =>
         t.name.toLowerCase().includes(query)
       );
     }
@@ -87,7 +87,7 @@ export default function OrganizerTeams() {
         api.teams.getById(team.id),
         api.users.listUsers({ team_id: team.id })
       ]);
-      
+
       setSelectedTeam(teamDetails);
       setTeamMembers(members);
       setShowDetailsModal(true);
@@ -152,10 +152,10 @@ export default function OrganizerTeams() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Управление командами</h1>
-          
+
           {message && (
-            <Alert 
-              type={message.type} 
+            <Alert
+              type={message.type}
               message={message.text}
               onClose={() => setMessage(null)}
               className="mb-4"
@@ -170,14 +170,11 @@ export default function OrganizerTeams() {
             <Select
               value={selectedHackathon?.toString() || ''}
               onChange={(value) => setSelectedHackathon(Number(value))}
-              className="max-w-md"
-            >
-              {activeHackathons.map(hackathon => (
-                <option key={hackathon.id} value={hackathon.id}>
-                  {hackathon.title}
-                </option>
-              ))}
-            </Select>
+              options={activeHackathons.map(hackathon => ({
+                value: hackathon.id.toString(),
+                label: hackathon.title
+              }))}
+            />
           </div>
 
           {/* Фильтры */}
@@ -199,7 +196,6 @@ export default function OrganizerTeams() {
             ]}
             activeTab={activeTab}
             onChange={(tab) => setActiveTab(tab as TeamTab)}
-            className="mb-6"
           />
         </div>
 
@@ -322,7 +318,7 @@ export default function OrganizerTeams() {
                     teamMembers.map(member => (
                       <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <Avatar 
+                          <Avatar
                             name={member.full_name}
                             size="sm"
                           />

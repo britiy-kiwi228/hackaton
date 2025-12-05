@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
 from app.models import User, Skill, Achievement
-from app.schemas import (
-    UserResponse, UserLogin, UserUpdate, UserListResponse,
-    SkillResponse, AchievementResponse
-)
+from app.schemas.user_response import UserResponse
+from app.schemas.user_login import UserLogin
+from app.schemas.user_update import UserUpdate
+from app.schemas.user_list_response import UserListResponse
+from app.schemas.skill_response import SkillResponse
+from app.schemas.achievement_response import AchievementResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 

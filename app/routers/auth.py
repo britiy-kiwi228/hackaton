@@ -1,13 +1,16 @@
-"""
-Роутер аутентификации: Email/Password и Telegram
-"""
+"""Роутер аутентификации: Email/Password и Telegram"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+import os
+import hmac
+import hashlib
 
 from app.database import get_db
 from app.models import User
-from app.schemas import TelegramAuthRequest, TokenResponse, UserCreateRequest, UserLoginRequest
+from app.schemas.user import UserRegister
+from app.schemas.token_response import TokenResponse
+from app.schemas.telegram import TelegramAuthRequest
 from app.core.security import create_access_token, get_password_hash
 from app.core.config import settings
 from app.utils.telegram import verify_telegram_auth
@@ -15,15 +18,13 @@ from app.dependencies.auth import authenticate_user, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-
 @router.post("/login", response_model=TokenResponse)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    """
-    Вход по Email/Password (для админки)
-    
+    """Вход по Email/Password (для админки)
+
     OAuth2PasswordRequestForm ожидает поля:
     - username (используется как email)
     - password
@@ -33,14 +34,14 @@ async def login(
         password=form_data.password,
         db=db
     )
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Генерируем токен с дополнительной информацией о роли
     token = create_access_token(
         subject=user.id,
@@ -49,19 +50,17 @@ async def login(
             "auth_type": "email"
         }
     )
-    
-    return TokenResponse(access_token=token, token_type="bearer")
 
+    return TokenResponse(access_token=token, token_type="bearer")
 
 @router.post("/telegram/login", response_model=TokenResponse)
 def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
-    """
-    Вход через Telegram Login Widget
-    
+    """Вход через Telegram Login Widget
+
     Принимает данные от Telegram, проверяет подпись и создаёт/находит пользователя
     """
     auth_data = dict(data.auth_data)
-    
+
     # 1) Верификация Telegram данных
     try:
         verify_telegram_auth(auth_data, ttl_seconds=settings.TELEGRAM_AUTH_TTL_SECONDS)
@@ -71,19 +70,19 @@ def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # 2) Извлекаем данные пользователя
     tg_id = int(auth_data["id"])
-    
+
     # 3) Поиск или создание пользователя
     user = db.query(User).filter(User.tg_id == tg_id).first()
-    
+
     if not user:
         # Создаём нового пользователя
         first_name = auth_data.get("first_name", "")
         last_name = auth_data.get("last_name", "")
         full_name = f"{first_name} {last_name}".strip() or "Telegram User"
-        
+
         user = User(
             tg_id=tg_id,
             username=auth_data.get("username"),
@@ -104,7 +103,7 @@ def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
         user.avatar_url = auth_data.get("photo_url") or user.avatar_url
         db.commit()
         db.refresh(user)
-    
+
     # 4) Генерация JWT токена
     token = create_access_token(
         subject=user.id,
@@ -113,18 +112,16 @@ def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
             "tg_id": tg_id
         }
     )
-    
-    return TokenResponse(access_token=token, token_type="bearer")
 
+    return TokenResponse(access_token=token, token_type="bearer")
 
 @router.post("/register", response_model=TokenResponse)
 async def register(
-    user_data: UserCreateRequest,
+    user_data: UserRegister,
     db: Session = Depends(get_db)
 ):
-    """
-    Регистрация нового пользователя с email/password
-    
+    """Регистрация нового пользователя с email/password
+
     Создает нового пользователя и возвращает JWT токен
     """
     # Проверяем, что пользователь с таким email не существует
@@ -134,24 +131,25 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists"
         )
-    
+
     # Хешируем пароль
     password_hash = get_password_hash(user_data.password)
-    
+
     # Создаем нового пользователя
     user = User(
         email=user_data.email,
         password_hash=password_hash,
         full_name=user_data.full_name,
+        username=user_data.username,
         bio="",
         ready_to_work=True,
         is_admin=False
     )
-    
+
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     # Генерируем токен
     token = create_access_token(
         subject=user.id,
@@ -160,17 +158,15 @@ async def register(
             "auth_type": "email"
         }
     )
-    
-    return TokenResponse(access_token=token, token_type="bearer")
 
+    return TokenResponse(access_token=token, token_type="bearer")
 
 @router.get("/me")
 async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Получить информацию о текущем залогиненном пользователе
-    
+    """Получить информацию о текущем залогиненном пользователе
+
     Требует JWT токен в заголовке Authorization: Bearer <token>
     """
     return {

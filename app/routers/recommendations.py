@@ -8,13 +8,10 @@ from sqlalchemy import and_, or_, func
 
 from app.database import get_db
 from app.models import User, Team, Skill, Request as RequestModel, RequestStatus, RequestType
-from app.schemas import (
-    RecommendationRequest, 
-    RecommendationResponse, 
-    UserResponse, 
-    TeamListResponse,
-    EnhancedRecommendation
-)
+from app.schemas.recommendations import RecommendationRequest, RecommendationResponse
+from app.schemas.user_response import UserResponse
+from app.schemas.team_list_response import TeamListResponse
+from app.schemas.enhanced_recommendation import EnhancedRecommendation
 from app.core.auth import get_current_user  # Централизованная авторизация
 
 router = APIRouter(
