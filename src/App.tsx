@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from 'src/context/AuthContext.tsx';
-import { ProtectedRoute } from 'src/components/ProtectedRoute';
-import AuthPage from 'src/pages/auth/index';
-import DashboardPage from '@/pages/participant/dashboard';
-import BrowsePage from '@/pages/participant/browse';
-import ProfilePage from '@/pages/participant/profile';
-import RequestsPage from '@/pages/participant/requests';
-import TeamsPage from '@/pages/participant/teams';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import AuthPage from './pages/auth/index';
+import DashboardPage from './pages/participant/dashboard';
+import BrowsePage from './pages/participant/browse';
+import ProfilePage from './pages/participant/profile';
+import RequestsPage from './pages/participant/requests';
+import TeamsPage from './pages/participant/teams';
 
 // Organizer pages
-import OrganizerDashboard from '@/pages/organizer/dashboard';
-import OrganizerHackathons from '@/pages/organizer/hackathons';
-import OrganizerParticipants from '@/pages/organizer/participants';
-import OrganizerTeams from '@/pages/organizer/teams';
+import OrganizerDashboard from './pages/organizer/dashboard';
+import OrganizerHackathons from './pages/organizer/hackathons';
+import OrganizerParticipants from './pages/organizer/participants';
+import OrganizerTeams from './pages/organizer/teams';
 
 export default function App() {
   return (
