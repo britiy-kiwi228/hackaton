@@ -7,7 +7,7 @@ interface TabsProps {
   tabs: Tab[];
   activeTab: string;
   onChange: (tabId: string) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export default function Tabs({ tabs, activeTab, onChange, children }: TabsProps) {

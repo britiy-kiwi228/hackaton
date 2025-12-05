@@ -6,6 +6,7 @@ interface ButtonProps {
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
+  loading?: boolean;
 }
 
 export default function Button({
@@ -16,6 +17,7 @@ export default function Button({
   disabled = false,
   type = 'button',
   className = '',
+  loading = false,
 }: ButtonProps) {
   const baseStyles = 'font-medium transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -36,10 +38,10 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
-      {children}
+      {loading ? 'Loading...' : children}
     </button>
   );
 }

@@ -3,6 +3,16 @@ import { AuthProvider } from '@/context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import AuthPage from '@/pages/auth';
 import DashboardPage from '@/pages/participant/dashboard';
+import BrowsePage from '@/pages/participant/browse';
+import ProfilePage from '@/pages/participant/profile';
+import RequestsPage from '@/pages/participant/requests';
+import TeamsPage from '@/pages/participant/teams';
+
+// Organizer pages
+import OrganizerDashboard from '@/pages/organizer/dashboard';
+import OrganizerHackathons from '@/pages/organizer/hackathons';
+import OrganizerParticipants from '@/pages/organizer/participants';
+import OrganizerTeams from '@/pages/organizer/teams';
 
 export default function App() {
   return (
@@ -18,6 +28,73 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/browse"
+            element={
+              <ProtectedRoute>
+                <BrowsePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/requests"
+            element={
+              <ProtectedRoute>
+                <RequestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <TeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Organizer routes */}
+          <Route
+            path="/organizer/dashboard"
+            element={
+              <ProtectedRoute>
+                <OrganizerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/organizer/hackathons"
+            element={
+              <ProtectedRoute>
+                <OrganizerHackathons />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/organizer/participants"
+            element={
+              <ProtectedRoute>
+                <OrganizerParticipants />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/organizer/teams"
+            element={
+              <ProtectedRoute>
+                <OrganizerTeams />
+              </ProtectedRoute>
+            }
+          />
+          
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
