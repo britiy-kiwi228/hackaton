@@ -23,3 +23,180 @@ INFO:     127.0.0.1:55346 - "GET /users/me HTTP/1.1" 422 Unprocessable Entity
 INFO:     127.0.0.1:55373 - "OPTIONS /users/auth/telegram HTTP/1.1" 200 OK
 INFO:     127.0.0.1:55373 - "POST /users/auth/telegram HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:55403 - "GET /openapi.json HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/schemas/token_response.py', 'app/schemas/recommendations.py', 'app/schemas/request.py', 'app/routers/hackathons.py', 'app/middleware/logging.py', 'app/__init__.py', 'alembic/env.py', 'app/schemas/skill_response.py', 'test_recommendations.py', 'app/routers/requests.py', 'app/schemas/user_login.py', 'app/schemas/user_update.py', 'app/schemas/team_list_response.py', 'app/schemas/user_response.py', 'app/exception_handlers.py', 'app/schemas/enhanced_recommendation.py', 'app/routers/teams.py', 'app/routers/health.py', 'app/schemas.py', 'app/schemas/request_status_enum.py', 'app/routers/users.py', 'app/schemas/telegram.py', 'app/schemas/user_list_response.py', 'app/schemas/hackathon.py', 'app/schemas/misc.py', 'app/schemas/request_update.py', 'app/schemas/team.py', 'run_migrations.py', 'conftest.py', 'app/routers/auth.py', 'app/schemas/user.py', 'app/schemas/request_type_enum.py', 'app/routers/recommendations.py', 'alembic/versions/unique_index_join_requests_v2.py', 'app/schemas/achievement_response.py', 'alembic/versions/unique_index_join_requests.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3956]
+INFO:main:Начинаем инициализацию приложения...
+WARNING:  WatchFiles detected changes in 'test_recommendations.py', 'app/exception_handlers.py', 'app/routers/health.py', 'run_migrations.py', 'conftest.py', 'alembic/versions/unique_index_join_requests_v2.py', 'alembic/versions/unique_index_join_requests.py'. Reloading...
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+WARNING:  WatchFiles detected changes in 'app/schemas/user_login.py', 'app/schemas/user.py', 'app/schemas/token_response.py', 'app/schemas/recommendations.py', 'app/schemas/user_update.py', 'app/schemas/team_list_response.py', 'app/schemas/request.py', 'app/schemas/request_status_enum.py', 'app/schemas/request_type_enum.py', 'app/schemas/telegram.py', 'app/schemas/user_response.py', 'app/schemas/user_list_response.py', 'app/middleware/logging.py', 'app/schemas/hackathon.py', 'app/schemas/enhanced_recommendation.py', 'app/schemas/misc.py', 'app/schemas/request_update.py', 'app/schemas/team.py', 'app/schemas/achievement_response.py', 'app/schemas/skill_response.py'. Reloading...
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4661]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'test_recommendations.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4661]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+WARNING:  WatchFiles detected changes in 'run_migrations.py'. Reloading...
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4678]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/health.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4678]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4679]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/requests.py', 'app/schemas/user_login.py', 'app/routers/users.py', 'app/routers/hackathons.py', 'app/routers/recommendations.py', 'app/middleware/logging.py', 'app/exception_handlers.py', 'app/__init__.py', 'alembic/env.py', 'app/schemas/misc.py', 'app/routers/teams.py', 'alembic/versions/unique_index_join_requests_v2.py', 'conftest.py', 'app/routers/auth.py', 'alembic/versions/unique_index_join_requests.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4679]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4680]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/request_status_enum.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4680]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4681]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/token_response.py', 'app/schemas/request.py', 'app/schemas/telegram.py', 'app/schemas/user_response.py', 'app/schemas/user_list_response.py', 'app/schemas/team.py', 'app/schemas/achievement_response.py', 'app/schemas/skill_response.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4681]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+WARNING:  WatchFiles detected changes in 'app/schemas/user.py', 'app/schemas/recommendations.py', 'app/schemas/user_update.py', 'app/schemas/team_list_response.py', 'app/schemas/request_type_enum.py', 'app/schemas/hackathon.py', 'app/schemas/enhanced_recommendation.py', 'app/schemas/request_update.py', 'test_recommendations.py'. Reloading...
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4702]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'run_migrations.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4702]
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [4703]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

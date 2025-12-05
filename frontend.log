@@ -7,3 +7,9 @@
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
+8:13:17 PM [vite] .env.local changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+8:13:17 PM [vite] server restarted.
+8:13:18 PM [vite] ✨ optimized dependencies changed. reloading
+8:13:40 PM [vite] .env.local changed, restarting server...
+8:13:40 PM [vite] server restarted.
