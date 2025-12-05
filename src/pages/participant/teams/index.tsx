@@ -1,34 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/layout';
-import { Card, Button, Spinner, Badge, Avatar, Tabs, Input, Modal, Alert } from '@/shared/ui';
-import { useTeam, useAuth, useHackathons } from '@/shared/hooks';
+import AppLayout from 'src/layout/AppLayout';
+import { Card, Button, Spinner, Badge, Avatar, Tabs, Input, Modal, Alert } from 'src/shared/ui';
+import { useTeam, useAuth, useHackathons } from 'src/shared/hooks';
 import { TeamResponse, TeamCreate, RoleEnum } from '@/shared/api/types';
 import api from '@/shared/api';
 
 type TeamTab = 'my-team' | 'all-teams' | 'create';
 
 export default function TeamsPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { hackathons } = useHackathons();
-  const { team, members, loading, error, getTeam, createTeam, updateTeam, joinTeam, leaveTeam } = useTeam();
-  
+  const { team, members, loading, getTeam, createTeam, updateTeam, joinTeam, leaveTeam } = useTeam();
+
   const [activeTab, setActiveTab] = useState<TeamTab>('my-team');
   const [allTeams, setAllTeams] = useState<TeamResponse[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [selectedHackathon, setSelectedHackathon] = useState<number | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+
   // Форма создания команды
   const [createForm, setCreateForm] = useState<TeamCreate>({
     name: '',
     description: '',
     hackathon_id: 0,
   });
-  
+
   // Форма редактирования команды
   const [editForm, setEditForm] = useState({
     name: '',
@@ -63,12 +60,12 @@ export default function TeamsPage() {
 
   const loadAllTeams = async () => {
     if (!selectedHackathon) return;
-    
+
     try {
       setLoadingTeams(true);
-      const teams = await api.teams.getList({ 
+      const teams = await api.teams.getList({
         hackathon_id: selectedHackathon,
-        is_looking: true 
+        is_looking: true
       });
       setAllTeams(teams.map(teamListItem => ({
         ...teamListItem,
@@ -94,7 +91,6 @@ export default function TeamsPage() {
       setMessage(null);
       await createTeam(createForm);
       setMessage({ type: 'success', text: 'Команда создана!' });
-      setShowCreateModal(false);
       setCreateForm({ name: '', description: '', hackathon_id: selectedHackathon || 0 });
       setActiveTab('my-team');
     } catch (error) {
@@ -131,7 +127,7 @@ export default function TeamsPage() {
 
   const handleLeaveTeam = async () => {
     if (!team) return;
-    
+
     if (confirm('Вы уверены, что хотите покинуть команду?')) {
       try {
         setMessage(null);
@@ -180,9 +176,9 @@ export default function TeamsPage() {
         </div>
 
         {message && (
-          <Alert 
-            type={message.type} 
-            message={message.text} 
+          <Alert
+            type={message.type}
+            message={message.text}
             onClose={() => setMessage(null)}
             className="mb-6"
           />
@@ -191,8 +187,7 @@ export default function TeamsPage() {
         <Tabs
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tab) => setActiveTab(tab as TeamTab)}
-          className="mb-6"
+          onChange={(tab) => setActiveTab(tab as TeamTab)}
         />
 
         {/* Моя команда */}
@@ -236,9 +231,9 @@ export default function TeamsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {members.map((member) => (
                       <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <Avatar 
+                        <Avatar
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.full_name)}&background=random`}
-                          alt={member.full_name}
+                          name={member.full_name}
                           size="sm"
                         />
                         <div className="flex-1 min-w-0">
@@ -247,7 +242,7 @@ export default function TeamsPage() {
                             {member.id === team.captain_id && ' (Капитан)'}
                           </p>
                           {member.main_role && (
-                            <Badge 
+                            <Badge
                               className={`text-xs ${getRoleColor(member.main_role)}`}
                             >
                               {member.main_role}
@@ -314,12 +309,12 @@ export default function TeamsPage() {
                         Ищут участников
                       </Badge>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
                         ID: {teamItem.id}
                       </span>
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => handleJoinTeam(teamItem.id)}
                         disabled={!!user?.team_id}
@@ -329,7 +324,7 @@ export default function TeamsPage() {
                     </div>
                   </Card>
                 ))}
-                
+
                 {allTeams.length === 0 && !loadingTeams && (
                   <div className="col-span-full text-center py-8">
                     <p className="text-gray-600">Команды не найдены</p>
@@ -344,7 +339,7 @@ export default function TeamsPage() {
         {activeTab === 'create' && (
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Создать новую команду</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -356,7 +351,7 @@ export default function TeamsPage() {
                   placeholder="Введите название команды"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Описание
@@ -369,7 +364,7 @@ export default function TeamsPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Хакатон *
@@ -387,13 +382,13 @@ export default function TeamsPage() {
                   ))}
                 </select>
               </div>
-              
+
               <div className="flex gap-4 pt-4">
                 <Button onClick={handleCreateTeam} disabled={loading}>
                   {loading ? 'Создание...' : 'Создать команду'}
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setCreateForm({ name: '', description: '', hackathon_id: selectedHackathon || 0 });
                     setActiveTab('my-team');
@@ -423,7 +418,7 @@ export default function TeamsPage() {
                 placeholder="Введите название команды"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Описание
@@ -436,7 +431,7 @@ export default function TeamsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -449,7 +444,7 @@ export default function TeamsPage() {
                 Команда ищет новых участников
               </label>
             </div>
-            
+
             <div className="flex gap-4 pt-4">
               <Button onClick={handleEditTeam} disabled={loading}>
                 {loading ? 'Сохранение...' : 'Сохранить'}
