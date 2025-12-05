@@ -1,0 +1,51 @@
+INFO:__main__:Начинаем инициализацию приложения...
+INFO:__main__:✓ Database импортирован
+INFO:__main__:✓ Routers импортированы
+INFO:__main__:✓ Users router импортирован
+INFO:__main__:✓ Teams router импортирован
+INFO:__main__:✓ Requests router импортирован
+INFO:__main__:✓ Recommendations router импортирован
+INFO:__main__:✓ Auth router импортирован
+INFO:__main__:✓ Таблицы БД созданы
+INFO:__main__:✓ FastAPI приложение создано
+INFO:__main__:✓ Middleware добавлен
+INFO:__main__:✓ Роутеры подключены
+INFO:__main__:✓ Админ-панель настроена
+INFO:__main__:🚀 Запуск сервера на http://0.0.0.0:8000
+INFO:__main__:📊 Админ-панель доступна на http://0.0.0.0:8000/admin
+INFO:main:Начинаем инициализацию приложения...
+INFO:main:✓ Database импортирован
+INFO:main:✓ Routers импортированы
+INFO:main:✓ Users router импортирован
+INFO:main:✓ Teams router импортирован
+INFO:main:✓ Requests router импортирован
+INFO:main:✓ Recommendations router импортирован
+INFO:main:✓ Auth router импортирован
+INFO:main:✓ Таблицы БД созданы
+INFO:main:✓ FastAPI приложение создано
+INFO:main:✓ Middleware добавлен
+INFO:main:✓ Роутеры подключены
+INFO:main:✓ Админ-панель настроена
+INFO:     Started server process [5402]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57632 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:57639 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57652 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57703 - "OPTIONS /users/auth/telegram HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57703 - "POST /users/auth/telegram HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57703 - "POST /users/auth/telegram HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57703 - "POST /users/auth/telegram HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57831 - "GET /users/me HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:57834 - "GET /users/me?tg_id=123456 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57843 - "GET /users HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57848 - "GET /users HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:57853 - "GET /users/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57864 - "GET /users/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57870 - "GET /users/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57961 - "POST /users/auth/telegram HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [5402]

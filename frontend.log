@@ -13,3 +13,54 @@ Re-optimizing dependencies because lockfile has changed
 8:13:18 PM [vite] ✨ optimized dependencies changed. reloading
 8:13:40 PM [vite] .env.local changed, restarting server...
 8:13:40 PM [vite] server restarted.
+8:29:35 PM [vite] .env changed, restarting server...
+8:29:35 PM [vite] .env changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+8:29:35 PM [vite] server restarted.
+8:29:35 PM [vite] .env changed, restarting server...
+8:29:35 PM [vite] server restarted.
+8:30:04 PM [vite] .env.local changed, restarting server...
+8:30:04 PM [vite] server restarted.
+8:33:54 PM [vite] .env.local changed, restarting server...
+8:33:54 PM [vite] server restarted.
+8:35:19 PM [vite] .env changed, restarting server...
+8:35:19 PM [vite] server restarted.
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/_macros.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/base.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/create.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/details.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/edit.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/error.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/index.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/layout.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/list.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/login.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/delete.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/details_action_confirmation.html
+9:04:48 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/list_action_confirmation.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/_macros.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/base.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/create.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/details.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/edit.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/error.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/index.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/layout.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/list.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/login.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/delete.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/details_action_confirmation.html
+9:04:50 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/list_action_confirmation.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/index.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/error.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/delete.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/list_action_confirmation.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/modals/details_action_confirmation.html
+9:10:20 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/base.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/create.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/_macros.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/login.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/details.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/edit.html
+9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/layout.html
+9:17:07 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/list.html
