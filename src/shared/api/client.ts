@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'https://shapelier-availably-quiana.ngrok-free.dev';
 
 const client: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
