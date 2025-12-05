@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.schemas.user import UserRegister
-from app.schemas.misc import TokenResponse
+from app.schemas.token_response import TokenResponse
 from app.schemas.telegram import TelegramAuthRequest
 from app.core.security import create_access_token, get_password_hash
 from app.core.config import settings

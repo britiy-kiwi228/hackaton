@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
 from app.models import Request, User, Team, Hackathon, RequestStatus, RequestType
-from app.schemas import (
-    RequestCreate, RequestUpdate, RequestResponse,
-    RequestStatusEnum, RequestTypeEnum
-)
+from app.schemas.request import RequestCreate, RequestResponse
+from app.schemas.request_update import RequestUpdate
+from app.schemas.request_status_enum import RequestStatusEnum
+from app.schemas.request_type_enum import RequestTypeEnum
 
 router = APIRouter(prefix="/requests", tags=["requests"])
 
