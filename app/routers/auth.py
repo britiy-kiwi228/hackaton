@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.schemas import TelegramAuthRequest, TokenResponse, UserCreateRequest, UserLoginRequest
+from app.schemas.user import UserRegister
+from app.schemas.misc import TokenResponse
+from app.schemas.telegram import TelegramAuthRequest
 from app.core.security import create_access_token, get_password_hash
 from app.core.config import settings
 from app.utils.telegram import verify_telegram_auth
@@ -119,7 +121,7 @@ def telegram_login(data: TelegramAuthRequest, db: Session = Depends(get_db)):
 
 @router.post("/register", response_model=TokenResponse)
 async def register(
-    user_data: UserCreateRequest,
+    user_data: UserRegister,
     db: Session = Depends(get_db)
 ):
     """
@@ -143,6 +145,7 @@ async def register(
         email=user_data.email,
         password_hash=password_hash,
         full_name=user_data.full_name,
+        username=user_data.username,
         bio="",
         ready_to_work=True,
         is_admin=False

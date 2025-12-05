@@ -4,25 +4,23 @@ from typing import List, Optional
 from datetime import datetime
 from app.database import get_db
 from app.models import Hackathon, Team, User
-from app.schemas import (
-    HackathonCreate, HackathonUpdate, HackathonResponse,
-    CalendarResponse, NotificationResponse
-)
+from app.schemas.hackathon import HackathonCreate, HackathonUpdate, HackathonRead
+from app.schemas.misc import CalendarResponse, NotificationResponse
 
 router = APIRouter(prefix="/hackathons", tags=["hackathons"])
 
 
-@router.post("/", response_model=HackathonResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=HackathonRead, status_code=status.HTTP_201_CREATED)
 def create_hackathon(hackathon_data: HackathonCreate, db: Session = Depends(get_db)):
     """Создать новый хакатон"""
-    hackathon = Hackathon(**hackathon_data.dict())
+    hackathon = Hackathon(**hackathon_data.model_dump())
     db.add(hackathon)
     db.commit()
     db.refresh(hackathon)
     return hackathon
 
 
-@router.get("/", response_model=List[HackathonResponse])
+@router.get("/", response_model=List[HackathonRead])
 def get_hackathons(
     skip: int = 0,
     limit: int = 100,
@@ -39,7 +37,7 @@ def get_hackathons(
     return hackathons
 
 
-@router.get("/active", response_model=List[HackathonResponse])
+@router.get("/active", response_model=List[HackathonRead])
 def get_active_hackathons(db: Session = Depends(get_db)):
     """Получить список активных хакатонов"""
     hackathons = db.query(Hackathon).filter(
@@ -93,7 +91,7 @@ def get_hackathon_notifications(tg_id: int, db: Session = Depends(get_db)):
     return NotificationResponse(has_notification=False)
 
 
-@router.get("/{hackathon_id}", response_model=HackathonResponse)
+@router.get("/{hackathon_id}", response_model=HackathonRead)
 def get_hackathon(hackathon_id: int, db: Session = Depends(get_db)):
     """Получить информацию о хакатоне по ID"""
     hackathon = db.query(Hackathon).filter(Hackathon.id == hackathon_id).first()
@@ -105,7 +103,7 @@ def get_hackathon(hackathon_id: int, db: Session = Depends(get_db)):
     return hackathon
 
 
-@router.put("/{hackathon_id}", response_model=HackathonResponse)
+@router.put("/{hackathon_id}", response_model=HackathonRead)
 def update_hackathon(
     hackathon_id: int,
     hackathon_update: HackathonUpdate,
@@ -120,7 +118,7 @@ def update_hackathon(
         )
     
     # Обновляем поля
-    update_data = hackathon_update.dict(exclude_unset=True)
+    update_data = hackathon_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(hackathon, field, value)
     
