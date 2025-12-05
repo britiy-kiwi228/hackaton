@@ -64,3 +64,7 @@ Re-optimizing dependencies because lockfile has changed
 9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/edit.html
 9:13:08 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/layout.html
 9:17:07 PM [vite] page reload venv/lib/python3.9/site-packages/sqladmin/templates/list.html
+10:14:02 PM [vite] hmr update /src/index.css, /src/pages/participant/browse/index.tsx, /src/context/AuthContext.tsx, /src/pages/participant/profile/index.tsx, /src/pages/participant/requests/index.tsx, /src/pages/participant/teams/index.tsx, /src/pages/organizer/dashboard/index.tsx, /src/pages/organizer/participants/index.tsx, /src/pages/organizer/hackathons/index.tsx, /src/pages/organizer/teams/index.tsx, /src/pages/auth/Login.tsx
+10:28:00 PM [vite] .env.local changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+10:28:00 PM [vite] server restarted.
