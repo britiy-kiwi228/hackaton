@@ -16,6 +16,9 @@ from app.database import Base
 # Импортируем ВСЕ модели из app.models для их регистрации
 import app.models
 
+# Добавляем импорт модели Hackathon для миграции поля location
+from app.models import Hackathon
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
