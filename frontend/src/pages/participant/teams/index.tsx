@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
-import AppLayout from 'src/layout/AppLayout';
-import { Card, Button, Spinner, Badge, Avatar, Tabs, Input, Modal, Alert } from 'src/shared/ui';
-import { useTeam, useAuth, useHackathons } from 'src/shared/hooks';
+import AppLayout from '@/layout/AppLayout';
+import { Card, Button, Spinner, Badge, Avatar, Tabs, Input, Modal, Alert } from '@/shared/ui';
+import { useTeam, useAuth, useHackathons } from '@/shared/hooks';
 import { TeamResponse, TeamCreate, RoleEnum } from '@/shared/api/types';
 import api from '@/shared/api';
 
 type TeamTab = 'my-team' | 'all-teams' | 'create';
+
+interface TeamMember {
+  id: number;
+  full_name: string;
+  main_role: RoleEnum | null;
+}
+
+interface Hackathon {
+  id: number;
+  title: string;
+  is_active: boolean;
+}
 
 export default function TeamsPage() {
   const { user } = useAuth();
@@ -26,6 +38,16 @@ export default function TeamsPage() {
     hackathon_id: 0,
   });
 
+  useEffect(() => {
+    if (hackathons.length > 0 && !selectedHackathon) {
+      const activeHackathon = hackathons.find((h: Hackathon) => h.is_active);
+      if (activeHackathon) {
+        setSelectedHackathon(activeHackathon.id);
+        setCreateForm((prev: TeamCreate) => ({ ...prev, hackathon_id: activeHackathon.id }));
+      }
+    }
+  }, [hackathons, selectedHackathon]);
+
   // Форма редактирования команды
   const [editForm, setEditForm] = useState({
     name: '',
@@ -36,10 +58,10 @@ export default function TeamsPage() {
   // Получаем активный хакатон по умолчанию
   useEffect(() => {
     if (hackathons.length > 0 && !selectedHackathon) {
-      const activeHackathon = hackathons.find(h => h.is_active);
+      const activeHackathon = hackathons.find((h: Hackathon) => h.is_active);
       if (activeHackathon) {
         setSelectedHackathon(activeHackathon.id);
-        setCreateForm(prev => ({ ...prev, hackathon_id: activeHackathon.id }));
+        setCreateForm((prev: TeamCreate) => ({ ...prev, hackathon_id: activeHackathon.id }));
       }
     }
   }, [hackathons, selectedHackathon]);
@@ -67,7 +89,7 @@ export default function TeamsPage() {
         hackathon_id: selectedHackathon,
         is_looking: true
       });
-      setAllTeams(teams.map(teamListItem => ({
+      setAllTeams(teams.map((teamListItem: TeamResponse) => ({
         ...teamListItem,
         description: '',
         created_at: '',
@@ -187,7 +209,7 @@ export default function TeamsPage() {
         <Tabs
           tabs={tabs}
           activeTab={activeTab}
-          onChange={(tab) => setActiveTab(tab as TeamTab)}
+          onChange={(tab: TeamTab) => setActiveTab(tab)}
         />
 
         {/* Моя команда */}
@@ -229,7 +251,7 @@ export default function TeamsPage() {
                     Участники ({members.length})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {members.map((member) => (
+                    {members.map((member: TeamMember) => (
                       <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                         <Avatar
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.full_name)}&background=random`}
@@ -281,11 +303,11 @@ export default function TeamsPage() {
             <div className="mb-6">
               <select
                 value={selectedHackathon || ''}
-                onChange={(e) => setSelectedHackathon(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedHackathon(Number(e.target.value))}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Выберите хакатон</option>
-                {hackathons.map((hackathon) => (
+                {hackathons.map((hackathon: Hackathon) => (
                   <option key={hackathon.id} value={hackathon.id}>
                     {hackathon.title}
                   </option>
@@ -347,7 +369,7 @@ export default function TeamsPage() {
                 </label>
                 <Input
                   value={createForm.name}
-                  onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreateForm((prev: TeamCreate) => ({ ...prev, name: e.target.value }))}
                   placeholder="Введите название команды"
                 />
               </div>
@@ -358,7 +380,7 @@ export default function TeamsPage() {
                 </label>
                 <textarea
                   value={createForm.description}
-                  onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCreateForm((prev: TeamCreate) => ({ ...prev, description: e.target.value }))}
                   placeholder="Расскажите о вашей команде"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -371,11 +393,11 @@ export default function TeamsPage() {
                 </label>
                 <select
                   value={createForm.hackathon_id}
-                  onChange={(e) => setCreateForm(prev => ({ ...prev, hackathon_id: Number(e.target.value) }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCreateForm((prev: TeamCreate) => ({ ...prev, hackathon_id: Number(e.target.value) }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={0}>Выберите хакатон</option>
-                  {hackathons.map((hackathon) => (
+                  {hackathons.map((hackathon: Hackathon) => (
                     <option key={hackathon.id} value={hackathon.id}>
                       {hackathon.title}
                     </option>
@@ -414,7 +436,7 @@ export default function TeamsPage() {
               </label>
               <Input
                 value={editForm.name}
-                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="Введите название команды"
               />
             </div>
@@ -425,7 +447,7 @@ export default function TeamsPage() {
               </label>
               <textarea
                 value={editForm.description}
-                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Расскажите о вашей команде"
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -437,7 +459,7 @@ export default function TeamsPage() {
                 type="checkbox"
                 id="is_looking"
                 checked={editForm.is_looking}
-                onChange={(e) => setEditForm(prev => ({ ...prev, is_looking: e.target.checked }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm((prev) => ({ ...prev, is_looking: e.target.checked }))}
                 className="mr-2"
               />
               <label htmlFor="is_looking" className="text-sm text-gray-700">
