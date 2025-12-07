@@ -4,7 +4,6 @@ const HackathonsPage = () => {
   return (
     <div>
       <h1>Hackathons Page</h1>
-      {/* Add hackathons page structure here */}
     </div>
   );
 };

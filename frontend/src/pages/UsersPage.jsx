@@ -4,7 +4,6 @@ const UsersPage = () => {
   return (
     <div>
       <h1>Users Page</h1>
-      {/* Add users page structure here */}
     </div>
   );
 };

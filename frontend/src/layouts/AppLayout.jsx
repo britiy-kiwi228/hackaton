@@ -1,24 +1,40 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-const AppLayout = ({ children }) => {
+const AppLayout = () => {
   return (
     <div>
       <nav>
         <ul>
-          <li><Link to="/login">Login</Link></li>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/hackathons">Hackathons</Link></li>
-          <li><Link to="/teams">Teams</Link></li>
-          <li><Link to="/users">Users</Link></li>
-          <li><Link to="/requests">Requests</Link></li>
-          <li><Link to="/profile">Profile</Link></li>
-          <li><Link to="/recommendations">Recommendations</Link></li>
+          <li>
+            <NavLink to="/">Home</NavLink>
+          </li>
+          <li>
+            <NavLink to="/login">Login</NavLink>
+          </li>
+          <li>
+            <NavLink to="/hackathons">Hackathons</NavLink>
+          </li>
+          <li>
+            <NavLink to="/teams">Teams</NavLink>
+          </li>
+          <li>
+            <NavLink to="/users">Users</NavLink>
+          </li>
+          <li>
+            <NavLink to="/requests">Requests</NavLink>
+          </li>
+          <li>
+            <NavLink to="/profile">Profile</NavLink>
+          </li>
+          <li>
+            <NavLink to="/recommendations">Recommendations</NavLink>
+          </li>
+          <li>
+            <NavLink to="/hackmate">HackMate</NavLink>
+          </li>
         </ul>
       </nav>
-      <main>
-        {children}
-      </main>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
@@ -12,13 +12,14 @@ import RequestsPage from './pages/RequestsPage';
 import ProfilePage from './pages/ProfilePage';
 import RecommendationsPage from './pages/RecommendationsPage';
 
+
 const App = () => {
   return (
-    <Router>
+    <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/hackathons" element={<HackathonsPage />} />
           <Route path="/hackathons/:id" element={<HackathonDetailsPage />} />
           <Route path="/teams" element={<TeamsPage />} />
@@ -29,7 +30,7 @@ const App = () => {
           <Route path="/recommendations" element={<RecommendationsPage />} />
         </Routes>
       </AppLayout>
-    </Router>
+    </BrowserRouter>
   );
 };
 
