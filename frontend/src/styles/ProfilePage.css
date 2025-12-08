@@ -1,0 +1,339 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --p-primary: #3C47B8;
+  --p-accent: #6D88F0;
+  --p-bg: #D4D9D8;
+  --p-white: #FFFFFF;
+  --p-text: #212529;
+  --p-border: #748495;
+  --p-gray-bg: #F3F4F6;
+  --p-red: #DC2626;
+}
+
+.profile-page {
+  min-height: 100vh;
+  background-color: var(--p-bg);
+  font-family: 'Lexend', sans-serif;
+  padding: 24px 0;
+}
+
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.profile-page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--p-text);
+  margin-bottom: 24px;
+}
+
+/* Сетка контента */
+.profile-content-grid {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.profile-left-col {
+  width: 60%;
+}
+
+.profile-right-col {
+  width: 40%;
+}
+
+/* Общие стили карточек */
+.profile-card, .add-achievement-form {
+  background-color: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+/* Аватар блок */
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.big-avatar {
+  width: 128px;
+  height: 128px;
+  background-color: var(--p-gray-bg);
+  border-radius: 50%;
+  border: 2px solid var(--p-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.name-display h2 {
+  font-size: 24px;
+  color: var(--p-text);
+  margin: 0;
+}
+
+.username-tag {
+  color: var(--p-primary);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* Формы */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--p-text);
+  margin-bottom: 8px;
+}
+
+.profile-input, .profile-textarea, .profile-select {
+  width: 100%;
+  background-color: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 16px;
+  color: var(--p-text);
+  outline: none;
+  transition: border 0.2s;
+  box-sizing: border-box;
+}
+
+.profile-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.profile-input:focus, .profile-textarea:focus, .profile-select:focus {
+  border-color: var(--p-primary);
+}
+
+/* Кастомный тогл */
+.toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-toggle {
+  width: 48px;
+  height: 24px;
+  background-color: var(--p-border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.custom-toggle.active {
+  background-color: var(--p-primary);
+}
+
+.toggle-circle {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.custom-toggle.active .toggle-circle {
+  transform: translateX(24px);
+}
+
+.toggle-status-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--p-text);
+}
+
+/* Навыки инпут */
+.skills-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
+  background-color: var(--p-white);
+}
+
+/* Исправленный стиль для тегов навыков */
+.skill-chip {
+  background-color: var(--p-gray-bg);
+  color: var(--p-text); /* ТЕМНЫЙ ТЕКСТ */
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.skill-chip:hover {
+  background-color: #E5E7EB;
+}
+
+/* Исправленный стиль для поля ввода навыков */
+.skill-input-field {
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  font-family: 'Lexend', sans-serif;
+  font-size: 14px;
+  min-width: 100px;
+  background-color: transparent;
+  color: var(--p-text); /* ТЕМНЫЙ ТЕКСТ */
+}
+
+/* Кнопка сохранить */
+.btn-save {
+  width: 100%;
+  background-color: var(--p-primary);
+  color: var(--p-white);
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: opacity 0.2s;
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+/* Правая колонка */
+.section-header {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--p-text);
+  margin-bottom: 24px;
+}
+
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.achievement-card {
+  background-color: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ach-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.ach-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--p-primary);
+  margin: 0;
+}
+
+.btn-delete-ach {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--p-red);
+  font-size: 16px;
+  padding: 0;
+}
+
+.ach-desc {
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  color: var(--p-text);
+}
+
+.ach-date {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Форма добавления достижения */
+.add-achievement-form h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--p-text);
+}
+
+.mb-2 {
+  margin-bottom: 12px;
+}
+
+.btn-add-ach {
+  background-color: var(--p-accent);
+  color: var(--p-white);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 0 16px;
+  }
+
+  .profile-page-title {
+    font-size: 24px;
+  }
+
+  .profile-content-grid {
+    flex-direction: column;
+  }
+
+  .profile-left-col, .profile-right-col {
+    width: 100%;
+  }
+
+  .big-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .name-display h2 {
+    font-size: 20px;
+  }
+
+  .profile-input, .profile-textarea, .btn-save {
+    font-size: 14px; 
+  }
+  
+  .btn-save {
+    min-height: 44px;
+  }
+}
