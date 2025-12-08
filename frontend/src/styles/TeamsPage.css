@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --t-primary: #3C47B8;
+  --t-bg: #D4D9D8;
+  --t-white: #FFFFFF;
+  --t-border: #748495;
+  --t-text: #212529;
+}
+
+.teams-page {
+  min-height: 100vh;
+  background-color: var(--t-bg);
+  padding: 24px 0;
+  font-family: 'Lexend', sans-serif;
+}
+
+.teams-container {
+  max-width: 600px; /* Узкий контейнер, как для мобилки */
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.teams-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--t-text);
+  margin: 0;
+}
+
+.btn-create-team {
+  background-color: var(--t-primary);
+  color: var(--t-white);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Фильтры */
+.filters-card {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.filter-select {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--t-border);
+  background-color: var(--t-white);
+  font-family: 'Lexend', sans-serif;
+  color: var(--t-text);
+}
+
+/* Карточка списка (как на скрине) */
+.teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.team-list-card {
+  background-color: #DDE1E3; /* Светло-серый фон карточки, как на скрине */
+  border: 1px solid var(--t-border);
+  border-radius: 20px; /* Сильное скругление */
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.team-list-card:active {
+  transform: scale(0.98);
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-list-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--t-primary); /* Синий заголовок */
+}
+
+.team-list-meta {
+  margin: 0;
+  font-size: 14px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.team-list-desc {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: var(--t-text);
+}
+
+.no-data {
+  text-align: center;
+  color: #6B7280;
+  margin-top: 40px;
+}

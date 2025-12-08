@@ -16,31 +16,19 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Имитация задержки или реальный запрос
+      // Делаем реальный запрос к базе
       const data = await usersApi.getUsers(filters);
-      // Если API возвращает массив напрямую или объект с items
-      setUsers(Array.isArray(data) ? data : data.items || []);
+      
+      // Бэкенд может вернуть массив [...] или объект { items: [...], total: ... }
+      // Проверяем формат:
+      const userList = Array.isArray(data) ? data : (data.items || []);
+      
+      setUsers(userList);
     } catch (error) {
-      console.error(error);
-      // Демо-данные, если бэкенд недоступен
-      setUsers([
-        {
-          id: 1,
-          full_name: 'Николай С.',
-          main_role: 'backend',
-          ready_to_work: true,
-          skills: [{name: 'Python'}, {name: 'SQLAlchemy'}, {name: 'FastAPI'}],
-          avatar_url: null
-        },
-        {
-          id: 2,
-          full_name: 'Анна К.',
-          main_role: 'design',
-          ready_to_work: false,
-          skills: [{name: 'Figma'}, {name: 'UI/UX'}],
-          avatar_url: null
-        }
-      ]);
+      console.error("Ошибка загрузки пользователей:", error);
+      // !!! ВАЖНО: Мы убрали демо-данные отсюда.
+      // Теперь, если ошибка, список будет пустым, и вы увидите ошибку в консоли (F12)
+      setUsers([]); 
     } finally {
       setLoading(false);
     }
@@ -91,54 +79,59 @@ const UsersPage = () => {
           <div className="loading-state">Загрузка...</div>
         ) : (
           <div className="users-grid">
-            {users.map((user) => (
-              <div key={user.id} className="user-card">
-                <div className="card-header-user">
-                  <div className="user-avatar-placeholder">
-                    {user.avatar_url ? (
-                      <img src={user.avatar_url} alt="ava" />
-                    ) : (
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#3C47B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <circle cx="12" cy="7" r="4" stroke="#3C47B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+            {users.length > 0 ? (
+              users.map((user) => (
+                <div key={user.id} className="user-card">
+                  <div className="card-header-user">
+                    <div className="user-avatar-placeholder">
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="ava" />
+                      ) : (
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#3C47B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <circle cx="12" cy="7" r="4" stroke="#3C47B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="user-info-text">
+                      <h3 className="user-name">{user.full_name || 'Без имени'}</h3>
+                      <span className="user-role">
+                        {user.main_role || 'Роль не указана'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="user-skills-list">
+                    {user.skills && user.skills.slice(0, 4).map((skill, idx) => (
+                      <span key={idx} className="skill-tag">{skill.name}</span>
+                    ))}
+                    {user.skills && user.skills.length > 4 && (
+                      <span className="skill-tag">+{user.skills.length - 4}</span>
                     )}
                   </div>
-                  <div className="user-info-text">
-                    <h3 className="user-name">{user.full_name || 'Без имени'}</h3>
-                    <span className="user-role">
-                      {user.main_role || 'Роль не указана'}
-                    </span>
+
+                  <div className="user-status-row">
+                    {user.ready_to_work ? (
+                      <span className="status-ready">● Готов к работе</span>
+                    ) : (
+                      <span className="status-busy">● Не готов</span>
+                    )}
+                  </div>
+
+                  <div className="user-card-actions">
+                    <button className="btn-profile" onClick={() => navigate(`/profile/${user.id}`)}>
+                      Профиль
+                    </button>
+                    {/* Кнопка действия пока неактивна */}
+                    {/* <button className="btn-collaborate">Сотрудничать</button> */}
                   </div>
                 </div>
-
-                <div className="user-skills-list">
-                  {user.skills && user.skills.slice(0, 4).map((skill, idx) => (
-                    <span key={idx} className="skill-tag">{skill.name}</span>
-                  ))}
-                  {user.skills && user.skills.length > 4 && (
-                    <span className="skill-tag">+{user.skills.length - 4}</span>
-                  )}
-                </div>
-
-                <div className="user-status-row">
-                  {user.ready_to_work ? (
-                    <span className="status-ready">● Готов к работе</span>
-                  ) : (
-                    <span className="status-busy">● Не готов</span>
-                  )}
-                </div>
-
-                <div className="user-card-actions">
-                  <button className="btn-profile" onClick={() => navigate(`/profile/${user.id}`)}>
-                    Профиль
-                  </button>
-                  <button className="btn-collaborate">
-                    Сотрудничать
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#666' }}>
+                Пользователи не найдены или произошла ошибка загрузки.
+              </p>
+            )}
           </div>
         )}
       </div>

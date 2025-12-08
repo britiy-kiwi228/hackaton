@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+.create-team-page {
+  min-height: 100vh;
+  background-color: #D4D9D8;
+  padding: 24px 0;
+  font-family: 'Lexend', sans-serif;
+}
+
+.create-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.create-form {
+  background-color: #FFFFFF;
+  border: 1px solid #748495;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #212529;
+}
+
+/* --- ОБНОВЛЕННЫЕ СТИЛИ ПОЛЕЙ --- */
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 12px;
+  /* Светло-голубой фон */
+  background-color: #F4F6FF; 
+  /* Синяя обводка (акцентная) */
+  border: 1px solid #6D88F0; 
+  border-radius: 8px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 16px;
+  /* Темный текст для читаемости */
+  color: #212529; 
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Эффект фокуса */
+.form-input:focus, .form-textarea:focus {
+  border-color: #3C47B8;
+  box-shadow: 0 0 0 3px rgba(60, 71, 184, 0.1);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #212529;
+}
+
+.btn-submit {
+  width: 100%;
+  background-color: #3C47B8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #2D368C;
+}
+
+.btn-submit:disabled {
+  background-color: #748495;
+  cursor: not-allowed;
+}

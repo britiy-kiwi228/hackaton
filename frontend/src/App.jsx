@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import ProfileDetailsPage from './pages/ProfileDetailsPage';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage';
 import HackathonsPage from './pages/HackathonsPage';
@@ -14,6 +15,7 @@ import TestPage from './pages/TestPage';
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import CreateTeamPage from './pages/CreateTeamPage.jsx';
 
 const App = () => {
   return (
@@ -27,11 +29,13 @@ const App = () => {
             <Route path="/hackathons/:id" element={<HackathonDetailsPage />} />
             <Route path="/requests" element={<RequestsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/:id" element={<ProfileDetailsPage/>} />
             <Route path="/recommendations" element={<RecommendationsPage />} />
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/teams/:id" element={<TeamDetailsPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/test" element={<TestPage />} />
+            <Route path="/create-team" element={<CreateTeamPage/>} />
           </Routes>
         </AppLayout>
       </Router>

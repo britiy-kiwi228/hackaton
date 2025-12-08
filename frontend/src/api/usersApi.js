@@ -1,25 +1,25 @@
 import httpClient from './httpClient';
 
-// Вспомогательная функция: берем tg_id из localStorage, чтобы не передавать его вручную в каждом вызове
-// (Предполагается, что при логине вы сохраняете объект user или user_tg_id в localStorage)
+// Вспомогательная функция: получает tg_id из localStorage
 const getStoredTgId = () => {
-  const userStr = localStorage.getItem('user'); // Или 'user_tg_id', как у вас реализовано
+  const userStr = localStorage.getItem('user');
   if (!userStr) return null;
   try {
     const user = JSON.parse(userStr);
-    return user.tg_id || user.id; 
+    // Проверяем разные варианты названия поля, которые могут прийти с бэка
+    return user.tg_id || user.id || user.user_id; 
   } catch (e) {
     return null;
   }
 };
 
 const usersApi = {
-  // 1. Логин
+  // 1. Логин через Telegram
   loginTelegramUser: async (tgData) => {
     try {
       const response = await httpClient.post('/users/login', tgData);
-      // Сохраняем данные пользователя при успешном входе, чтобы потом работали остальные запросы
       if (response.data) {
+        // Сохраняем данные, чтобы потом работал getStoredTgId()
         localStorage.setItem('user', JSON.stringify(response.data));
       }
       return response.data;
@@ -29,13 +29,22 @@ const usersApi = {
   },
 
   // 2. Получить свой профиль
-  // Мы проверяем, передал ли кто-то tg_id явно, если нет - берем из хранилища
   getMe: async (tg_id_arg) => {
     try {
       const tg_id = tg_id_arg || getStoredTgId();
+      
+      // ВАЖНО: Если ID нет, не делаем запрос, чтобы не получать ошибку 422
+      if (!tg_id) {
+        return null; 
+      }
+
       const response = await httpClient.get('/users/me', { params: { tg_id } });
       return response.data;
     } catch (error) {
+      // Если сервер ответил 404 или 422, считаем что пользователь не найден (гость)
+      if (error.response && (error.response.status === 422 || error.response.status === 404)) {
+         return null;
+      }
       throw error;
     }
   },
@@ -44,6 +53,8 @@ const usersApi = {
   updateMe: async (payload) => {
     try {
       const tg_id = getStoredTgId();
+      if (!tg_id) throw new Error("Пользователь не авторизован");
+      
       const response = await httpClient.put('/users/me', payload, { params: { tg_id } });
       return response.data;
     } catch (error) {
@@ -51,17 +62,34 @@ const usersApi = {
     }
   },
 
-  // 4. Получить список пользователей (с фильтрами)
+  // 4. Получить список пользователей (с правильными фильтрами)
   getUsers: async (filters) => {
     try {
-      const response = await httpClient.get('/users', { params: filters });
+      // Формируем объект параметров, исключая пустые строки
+      const params = {};
+
+      // Бэкенд ждет 'main_role', а не 'role'
+      if (filters.role && filters.role !== "") {
+        params.main_role = filters.role;
+      }
+
+      // Бэкенд ждет 'ready_to_work', а не 'is_ready'
+      if (filters.is_ready && filters.is_ready !== "") {
+        params.ready_to_work = filters.is_ready;
+      }
+      
+      if (filters.page) {
+        params.page = filters.page;
+      }
+
+      const response = await httpClient.get('/users', { params });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // 5. Получить пользователя по ID (чужой профиль)
+  // 5. Получить чужой профиль по ID
   getUser: async (userId) => {
     try {
       const response = await httpClient.get(`/users/${userId}`);
@@ -71,7 +99,7 @@ const usersApi = {
     }
   },
 
-  // 6. Получить список навыков
+  // 6. Получить все доступные навыки (для автокомплита)
   getAllSkills: async () => {
     try {
       const response = await httpClient.get('/users/skills');
@@ -92,11 +120,10 @@ const usersApi = {
     }
   },
 
-  // 8. Удалить достижение (Этого метода не хватало)
+  // 8. Удалить достижение
   deleteAchievement: async (achievementId) => {
     try {
       const tg_id = getStoredTgId();
-      // Обычно DELETE требует ID ресурса в URL и данные авторизации (tg_id) в params
       const response = await httpClient.delete(`/users/achievements/${achievementId}`, { params: { tg_id } });
       return response.data;
     } catch (error) {
@@ -105,5 +132,4 @@ const usersApi = {
   }
 };
 
-// Экспортируем как объект, чтобы работало: import { usersApi } from ...
 export { usersApi };

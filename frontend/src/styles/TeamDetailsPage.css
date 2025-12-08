@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+.team-details-page {
+  min-height: 100vh;
+  background-color: #D4D9D8;
+  padding: 24px 0;
+  font-family: 'Lexend', sans-serif;
+}
+
+.details-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.team-header-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.team-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #3C47B8;
+  margin: 0 0 8px 0;
+}
+
+.hackathon-badge {
+  background-color: #FFFFFF;
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid #748495;
+  font-size: 14px;
+  color: #212529;
+}
+
+.btn-edit {
+  background: none;
+  border: 1px solid #748495;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.team-card-section {
+  background-color: #FFFFFF;
+  border: 1px solid #748495;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.team-card-section h3 {
+  margin-top: 0;
+  color: #3C47B8;
+  font-size: 18px;
+}
+
+.team-desc {
+  line-height: 1.5;
+  color: #212529;
+}
+
+.status-looking { color: #10B981; font-weight: 500; }
+.status-full { color: #DC2626; font-weight: 500; }
+
+.members-list {
+  list-style: none;
+  padding: 0;
+}
+
+.member-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-badge {
+  background-color: #3C47B8;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Заявки */
+.request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #F3F4F6;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.req-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-accept, .btn-decline {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.btn-accept { background-color: #10B981; color: white; }
+.btn-decline { background-color: #DC2626; color: white; }
+
+/* Нижние кнопки */
+.bottom-actions-team {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-primary-action {
+  background-color: #3C47B8;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-danger {
+  background-color: #DC2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.loading-centered {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+  color: #748495;
+}
