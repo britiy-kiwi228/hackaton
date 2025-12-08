@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --rec-bg: #D4D9D8;
+  --rec-card-bg: #DDE1E3; /* Цвет карточки из фигмы */
+  --rec-border: #748495;
+  --rec-primary: #3C47B8;
+  --rec-text: #212529;
+  --rec-white: #FFFFFF;
+}
+
+.rec-page {
+  min-height: 100vh;
+  background-color: var(--rec-bg);
+  padding: 24px 0;
+  font-family: 'Lexend', sans-serif;
+}
+
+.rec-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Хедер с поиском */
+.rec-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar-fake {
+  flex-grow: 1;
+  background-color: transparent; /* В фигме может быть прозрачный или белый */
+  border: 1px solid #9CA3AF; /* Тонкая серая обводка как в инпуте */
+  border-radius: 50px; /* Сильное скругление */
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: #6B7280;
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.5); /* Полупрозрачный белый */
+}
+
+.rec-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--rec-text);
+  margin-bottom: 20px;
+}
+
+/* Фильтры */
+.filters-form {
+  background-color: var(--rec-white);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 1px solid var(--rec-border);
+}
+
+.rec-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--rec-border);
+  margin-top: 4px;
+  font-family: 'Lexend', sans-serif;
+}
+
+.btn-search-rec {
+  width: 100%;
+  background-color: var(--rec-primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+/* Список */
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rec-card {
+  background-color: var(--rec-card-bg); /* #DDE1E3 */
+  border: 1px solid var(--rec-border);
+  border-radius: 20px; /* Как на скрине */
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.rec-card:active {
+  transform: scale(0.98);
+}
+
+.rec-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rec-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rec-primary);
+}
+
+.rec-card-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.match-reasons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.reason-tag {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--rec-text);
+}
+
+/* Блок очков */
+.rec-score-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid; /* Цвет задается инлайном */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: var(--rec-white);
+}
+
+.loading-text, .no-data-text {
+  text-align: center;
+  color: #6B7280;
+  margin-top: 20px;
+}

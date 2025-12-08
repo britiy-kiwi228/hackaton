@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --r-primary: #3C47B8;
+  --r-bg: #D4D9D8;
+  --r-white: #FFFFFF;
+  --r-border: #748495;
+  --r-text: #212529;
+  --r-green: #10B981;
+  --r-red: #DC2626;
+  --r-gray: #6B7280;
+}
+
+.requests-page {
+  min-height: 100vh;
+  background-color: var(--r-bg);
+  padding: 24px 0;
+  font-family: 'Lexend', sans-serif;
+}
+
+.requests-container {
+  max-width: 600px; /* Узкий контейнер для списка */
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--r-text);
+  margin-bottom: 24px;
+}
+
+/* Вкладки */
+.tabs-container {
+  display: flex;
+  background-color: var(--r-white);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--r-border);
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--r-gray);
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background-color: var(--r-primary);
+  color: var(--r-white);
+}
+
+/* Список */
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.request-card-item {
+  background-color: var(--r-white);
+  border: 1px solid var(--r-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.req-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.req-type {
+  font-weight: 700;
+  color: var(--r-primary);
+  font-size: 16px;
+}
+
+/* Статусы */
+.status-badge {
+  font-size: 14px;
+  font-weight: 500;
+}
+.status-badge.pending { color: #F59E0B; } /* Оранжевый */
+.status-badge.accepted { color: var(--r-green); }
+.status-badge.declined { color: var(--r-red); }
+.status-badge.canceled { color: var(--r-gray); }
+
+/* Тело карточки */
+.req-body p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--r-text);
+  line-height: 1.4;
+}
+
+.req-hackathon {
+  font-size: 13px;
+  color: var(--r-gray);
+  margin-top: 8px !important;
+  font-style: italic;
+}
+
+/* Кнопки действий */
+.req-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-req {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-req.accept {
+  background-color: var(--r-green);
+  color: white;
+}
+
+.btn-req.decline {
+  background-color: var(--r-red);
+  color: white;
+}
+
+.btn-req.cancel {
+  background-color: var(--r-gray);
+  color: white;
+}
+
+.btn-req.delete-icon {
+  background-color: transparent;
+  border: 1px solid var(--r-red);
+  color: var(--r-red);
+  flex: 0 0 auto;
+}
+
+.loading-text, .no-data-text {
+  text-align: center;
+  color: var(--r-gray);
+  margin-top: 40px;
+}
