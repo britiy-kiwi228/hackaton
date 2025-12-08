@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const AppLayout = () => {
+const AppLayout = ({ children }) => {
   return (
-    <div>
+<div>
+      {children}
       <nav>
         <ul>
           <li>

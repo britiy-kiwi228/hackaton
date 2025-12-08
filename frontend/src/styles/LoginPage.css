@@ -1,49 +1,154 @@
+/* Подключение шрифта Lexend */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+/* Глобальные стили для страницы */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Lexend', sans-serif;
+}
+
+/* Переменные цветов согласно ТЗ */
+:root {
+  --color-primary: #3C47B8;      /* Темно-синий */
+  --color-accent: #6D88F0;       /* Ярко-синий */
+  --color-secondary: #584BE5;    /* Синий (для ховера) */
+  --color-text: #212529;         /* Темно-серый */
+  --color-bg: #D4D9D8;           /* Светло-серый фон */
+  --color-white: #FFFFFF;        /* Белый */
+}
+
+/* Обертка всей страницы */
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #E5E7EB;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  padding: 20px; /* Небольшой отступ от краев экрана */
 }
 
+/* Центральный белый контейнер */
 .login-container {
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  background-color: var(--color-white);
+  border-radius: 24px;
   padding: 24px;
+  width: 100%;
   max-width: 400px;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
 }
 
-.login-container h1 {
-  margin: 0;
+/* Логотип */
+.logo-container {
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
 
-.login-container p {
-  margin-bottom: 24px;
+.logo-text-hack {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 28px;
+  color: var(--color-text);
 }
 
-.login-container button {
-  margin-top: 24px;
+.logo-text-mate {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 28px;
+  color: var(--color-primary);
 }
 
-.dev-block {
-  background-color: #F3F4F6;
-  padding: 24px;
+/* Описание */
+.description {
+  font-weight: 400; /* Regular */
+  font-size: 16px;
+  color: var(--color-text);
+  margin-bottom: 24px; /* Увеличен отступ, чтобы отделить от кнопок */
+}
+
+/* Кнопка Telegram */
+.btn-telegram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-family: 'Lexend', sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 16px;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 8px; /* Отступ если появится кнопка админа */
+}
+
+.btn-telegram:hover {
+  background-color: var(--color-secondary);
+}
+
+/* Иконка внутри кнопки */
+.tg-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Кнопка Админа (Dev) */
+.btn-admin {
+  width: 100%;
+  background-color: var(--color-accent);
+  color: var(--color-white);
+  font-family: 'Lexend', sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 16px;
+  border: none;
   border-radius: 8px;
-  margin-top: 24px;
+  padding: 12px 16px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s ease;
 }
 
-.dev-block h2 {
-  margin-bottom: 16px;
+.btn-admin:hover {
+  background-color: var(--color-secondary);
 }
 
-.dev-block input {
-  width: 100%;
-  margin-bottom: 16px;
-}
+/* --- Адаптив для мобильных устройств (< 768px) --- */
+@media (max-width: 768px) {
+  .login-container {
+    width: 90%; /* Контейнер занимает 90% ширины */
+    padding: 16px;
+  }
 
-.dev-block button {
-  width: 100%;
+  .logo-text-hack,
+  .logo-text-mate {
+    font-size: 24px;
+  }
+
+  .description {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .btn-telegram {
+    padding: 12px 16px;
+    font-size: 14px; /* Чуть меньше шрифт, чтобы влезло */
+    min-height: 44px; /* Стандартная высота тач-зоны */
+  }
+
+  .btn-admin {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
 }
