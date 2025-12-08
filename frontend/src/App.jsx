@@ -11,9 +11,10 @@ import UsersPage from './pages/UsersPage';
 import RequestsPage from './pages/RequestsPage';
 import ProfilePage from './pages/ProfilePage';
 import RecommendationsPage from './pages/RecommendationsPage';
-
+import './styles/LoginPage.css';
 
 const App = () => {
+  console.log('App component rendered');
   return (
     <BrowserRouter>
       <AppLayout>
