@@ -75,6 +75,8 @@ class Hackathon(Base):
     end_date: Mapped[datetime] = mapped_column(DateTime, index=True)
     registration_deadline: Mapped[datetime] = mapped_column(DateTime, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     teams: Mapped[List["Team"]] = relationship(
         "Team",
@@ -221,7 +223,8 @@ class Team(Base):
 
     hackathon_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("hackathons.id", ondelete="CASCADE")
+        ForeignKey("hackathons.id", ondelete="CASCADE"),
+        nullable=True
     )
     
     # Команда ищет участников

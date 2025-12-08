@@ -63,4 +63,14 @@ const getHackathonStats = async (id) => {
   }
 };
 
-export { getHackathons, getActiveHackathons, getHackathonCalendar, getHackathonNotifications, getHackathon, getHackathonTeams, getHackathonStats };
+const hackathonsApi = {
+  getHackathons,
+  getActiveHackathons,
+  getHackathonCalendar,
+  getHackathonNotifications,
+  getHackathon,
+  getHackathonTeams,
+  getHackathonStats,
+};
+
+export { hackathonsApi };

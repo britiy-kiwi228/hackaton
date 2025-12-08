@@ -7,7 +7,7 @@ class HackathonBase(BaseModel):
     description: Optional[str] = None
     start_date: datetime
     end_date: datetime
-    location: str
+    location: Optional[str] = None
 
 class HackathonCreate(HackathonBase):
     @model_validator(mode='after')
