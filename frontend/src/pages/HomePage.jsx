@@ -30,7 +30,7 @@ const HomePage = () => {
           </button>
 
           {/* Кнопка 2: Найти команду */}
-          <button className="menu-btn btn-accent" onClick={() => navigate('/find-team')}>
+          <button className="menu-btn btn-accent" onClick={() => navigate('/recommendations')}>
             <div className="icon-group">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Иконка группы */}

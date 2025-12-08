@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --d-primary: #3C47B8;
+  --d-accent: #6D88F0;
+  --d-bg: #D4D9D8;
+  --d-white: #FFFFFF;
+  --d-text: #212529;
+  --d-border: #748495;
+  --d-gray-bg: #F3F4F6;
+  --d-success: #10B981;
+}
+
+.details-page {
+  background-color: var(--d-bg);
+  min-height: 100vh;
+  font-family: 'Lexend', sans-serif;
+  padding-bottom: 40px;
+}
+
+/* Баннер */
+.artistic-banner {
+  width: 100%;
+  height: 260px;
+  background-color: #FF4400;
+  background-image: url('../assets/banner_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  z-index: 1;
+}
+
+.details-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  margin-top: -50px;
+  background-color: var(--d-bg);
+  position: relative;
+  z-index: 2;
+}
+
+/* Заголовок */
+.hackathon-header {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.hackathon-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--d-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Кнопка "Участвовать" */
+.action-main {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+  margin-top: 24px;
+}
+
+.btn-participate {
+  background-color: var(--d-primary);
+  color: var(--d-white);
+  border: none;
+  border-radius: 50px;
+  padding: 14px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(60, 71, 184, 0.3);
+  transition: transform 0.1s;
+}
+
+.btn-participate:active {
+  transform: scale(0.98);
+}
+
+/* Инфо блок */
+.info-block {
+  background-color: var(--d-white);
+  border: 1px solid var(--d-border);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.info-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.info-text {
+  font-size: 16px;
+  color: var(--d-text);
+  font-weight: 500;
+}
+
+.description-text {
+  margin-top: 20px;
+  line-height: 1.5;
+  color: var(--d-text);
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.tech-tag {
+  background-color: var(--d-gray-bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--d-text);
+}
+
+/* Секция статистики */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--d-text);
+  margin-bottom: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: var(--d-white); /* Сделаем белый фон для контраста */
+  border-radius: 16px;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* --- ИСПРАВЛЕНИЕ ЦВЕТОВ СТАТИСТИКИ --- */
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--d-primary); /* Синий цвет цифр */
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--d-text); /* Темный цвет текста */
+  font-weight: 500;
+}
+
+/* Заголовок "Выберите команду" */
+.teams-title-container {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.teams-title-text {
+  color: var(--d-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Список команд */
+.teams-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.team-card {
+  background-color: #DDE1E3;
+  border: 1px solid var(--d-text);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--d-primary);
+  margin-bottom: 8px;
+}
+
+.team-meta {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* Нижние кнопки действий */
+.bottom-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px; /* Отступ между кнопками */
+  padding-bottom: 32px;
+  flex-wrap: wrap; /* Чтобы на совсем узких экранах переносились */
+}
+
+/* --- ОБНОВЛЕННЫЕ СТИЛИ НИЖНИХ КНОПОК --- */
+.btn-action {
+  background-color: var(--d-primary); /* Синий фон, как у "Участвовать" */
+  color: var(--d-white);            /* Белый текст */
+  border: none;
+  border-radius: 50px;              /* Такое же скругление */
+  padding: 14px 24px;               /* Отступы */
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(60, 71, 184, 0.2);
+  transition: transform 0.1s, background-color 0.2s;
+  min-width: 160px; /* Минимальная ширина для красоты */
+}
+
+.btn-action:hover {
+  background-color: var(--d-accent);
+}
+
+.btn-action:active {
+  transform: scale(0.98);
+}
